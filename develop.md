@@ -42,5 +42,7 @@
 - `47e6204`: 初始项目架构搭建、纯离线 TV Launcher、Leanback 响应式横向卡片行、Room 数据库、DataStore、防沉迷锁屏与 GitHub Actions 配置。
 - `527107d`: 补齐官方 Gradle 8.2 wrapper 二进制（`gradle-wrapper.jar`），并为 release 配置 debug 签名以便即开即用。
 - `c528f9e`: 修复 `settings.gradle.kts` 中的 Kotlin DSL 语法规范（`include(":app")`）。
-- `2f9dc4a`: 优化 Gradle 8.2 API 兼容性（`layout.buildDirectory`）、添加 Lint 防御配置以及 CI 构建诊断报告与日志产物上传。
+- `e72837c`: 修正 `app/build.gradle.kts` 中 `lint` DSL 属性名称并完善 CI 错误诊断提取。
+- `c7e3901`: 新增 `gradle.properties` 启用 `android.useAndroidX=true` 与 JVM 参数，解决 `mergeReleaseNativeLibs` 任务依赖校验。
+
 
