@@ -26,48 +26,13 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build Release APK
-      id: build_apk
-      run: |
-        ./gradlew :app:assembleRelease --no-daemon --stacktrace 2>&1 | tee build_output.log
-      continue-on-error: true
-
-    - name: Report Build Diagnostics
-      if: always()
-      run: |
-        if [ "${{ steps.build_apk.outcome }}" != "success" ]; then
-          echo "## ❌ Build Failed" >> $GITHUB_STEP_SUMMARY
-        else
-          echo "## ✅ Build Succeeded" >> $GITHUB_STEP_SUMMARY
-        fi
-        echo "```text" >> $GITHUB_STEP_SUMMARY
-        tail -n 100 build_output.log >> $GITHUB_STEP_SUMMARY
-        echo "```" >> $GITHUB_STEP_SUMMARY
-
-    - name: Upload Build Log
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: gradle-build-log
-        path: build_output.log
-        retention-days: 7
-
-    - name: List Generated APKs
-      run: |
-        echo "## 📦 Artifact File Scan" >> $GITHUB_STEP_SUMMARY
-        echo "```text" >> $GITHUB_STEP_SUMMARY
-        find . -name "*.apk" -ls >> $GITHUB_STEP_SUMMARY || true
-        echo "```" >> $GITHUB_STEP_SUMMARY
+      run: ./gradlew :app:assembleRelease --no-daemon --stacktrace
 
     - name: Upload APK Artifact
-      if: steps.build_apk.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
         name: OpenTVLauncher-Release-APK
         path: app/build/outputs/apk/release/*.apk
-        if-no-files-found: warn
+        if-no-files-found: error
         retention-days: 14
-
-    - name: Fail Job If Build Failed
-      if: steps.build_apk.outcome != 'success'
-      run: exit 1
 
