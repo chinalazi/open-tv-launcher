@@ -39,4 +39,8 @@
 
 ## 阶段二：实施日志（Git Commits 追踪）
 
-*(将在每个模块编码完成后持续更新提交日志)*
+- `47e6204`: 初始项目架构搭建、纯离线 TV Launcher、Leanback 响应式横向卡片行、Room 数据库、DataStore、防沉迷锁屏与 GitHub Actions 配置。
+- `527107d`: 补齐官方 Gradle 8.2 wrapper 二进制（`gradle-wrapper.jar`），并为 release 配置 debug 签名以便即开即用。
+- `c528f9e`: 修复 `settings.gradle.kts` 中的 Kotlin DSL 语法规范（`include(":app")`）。
+- `2f9dc4a`: 优化 Gradle 8.2 API 兼容性（`layout.buildDirectory`）、添加 Lint 防御配置以及 CI 构建诊断报告与日志产物上传。
+
