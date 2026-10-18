@@ -7,6 +7,10 @@ on:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
+# 发布 Release 需要写权限（默认 token 通常是只读）
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,6 +29,16 @@ jobs:
     - name: Grant Execute Permission for Gradlew
       run: chmod +x gradlew
 
+    - name: Read version from Gradle
+      id: ver
+      shell: bash
+      run: |
+        VERSION=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts | head -1)
+        CODE=$(grep -oP 'versionCode\s*=\s*\K[0-9]+' app/build.gradle.kts | head -1)
+        echo "name=$VERSION" >> "$GITHUB_OUTPUT"
+        echo "code=$CODE" >> "$GITHUB_OUTPUT"
+        echo "版本: $VERSION ($CODE)"
+
     - name: Build Release APK
       id: gradle_build
       shell: bash
@@ -40,6 +54,15 @@ jobs:
         CLEAN_MSG=$(echo "$ERR_MSG" | tr '\r\n' ' ' | sed 's/"/\\"/g')
         echo "::error title=Gradle Failure::$CLEAN_MSG"
 
+    - name: Prepare release file
+      if: success()
+      shell: bash
+      run: |
+        mkdir -p dist
+        cp app/build/outputs/apk/release/app-release.apk \
+           "dist/OpenTVLauncher-v${{ steps.ver.outputs.name }}.apk"
+        ls -lh dist
+
     - name: Upload Build Log
       if: always()
       uses: actions/upload-artifact@v4
@@ -49,10 +72,39 @@ jobs:
         retention-days: 7
 
     - name: Upload APK Artifact
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: OpenTVLauncher-Release-APK
-        path: app/build/outputs/apk/release/*.apk
+        path: dist/*.apk
         if-no-files-found: error
         retention-days: 14
 
+    - name: Publish GitHub Release
+      if: github.event_name != 'pull_request' && success()
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ steps.ver.outputs.name }}
+        name: OpenTV Launcher v${{ steps.ver.outputs.name }}
+        files: dist/*.apk
+        allowUpdates: true
+        make_latest: true
+        body: |
+          ## OpenTV Launcher v${{ steps.ver.outputs.name }} (build ${{ steps.ver.outputs.code }})
+
+          纯离线 Android TV 启动器，内置儿童防沉迷时长管理与 PIN 锁屏。
+
+          **安装**
+          ```bash
+          pip install -r deploy/requirements.txt
+          python deploy/deploy.py --host <电视IP> --install OpenTVLauncher-v${{ steps.ver.outputs.name }}.apk --set-home
+          python deploy/deploy.py --host <电视IP> --list-stock     # 确认原桌面包名
+          python deploy/deploy.py --host <电视IP> --disable-stock auto
+          ```
+
+          **注意**
+          - APK 使用 debug 签名（自用可直接覆盖安装；换正式签名需卸载重装）。
+          - 防沉迷闭环需要把本应用设为**唯一默认桌面**；孩子停留在播放器内时遮罩不会立刻覆盖（需悬浮窗覆盖层，后续版本）。
+          - 小米电视若软键盘不可用，本版全部操作已改为遥控器可完成。
+
+          构建：GitHub Actions run `${{ github.run_number }}` / commit `${{ github.sha }}`
