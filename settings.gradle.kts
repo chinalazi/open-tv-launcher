@@ -14,4 +14,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "OpenTVLauncher"
-include ':app'
+include(":app")
