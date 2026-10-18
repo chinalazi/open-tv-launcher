@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- TV 硬件声明 -->
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <!-- 必要的本地权限（注意：绝对无 INTERNET 权限，确保完全离线） -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+
+    <application
+        android:name=".app.LauncherApplication"
+        android:allowBackup="true"
+        android:banner="@drawable/ic_launcher_banner"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.OpenTVLauncher">
+
+        <!-- 启动器主入口 Activity -->
+        <activity
+            android:name=".ui.home.MainActivity"
+            android:banner="@drawable/ic_launcher_banner"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:stateNotNeeded="true"
+            android:theme="@style/Theme.OpenTVLauncher">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 设置菜单 Activity（包含系统设置与启动器自身设置） -->
+        <activity
+            android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OpenTVLauncher.Settings" />
+
+        <!-- 分类管理 Activity -->
+        <activity
+            android:name=".ui.settings.CategoryManagerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OpenTVLauncher.Settings" />
+
+        <!-- 家长控制 / 儿童防沉迷设置 Activity -->
+        <activity
+            android:name=".ui.parental.ParentalSettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.OpenTVLauncher.Settings" />
+
+        <!-- 超时全屏防沉迷锁屏 Activity -->
+        <activity
+            android:name=".ui.lock.ScreenLockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:noHistory="false"
+            android:showOnLockScreen="true"
+            android:theme="@style/Theme.OpenTVLauncher.LockScreen" />
+
+        <!-- 防沉迷计时服务 -->
+        <service
+            android:name=".service.TimeTrackingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="ParentalScreenTimeTracking" />
+        </service>
+
+        <!-- 应用安装卸载广播接收器 -->
+        <receiver
+            android:name=".receiver.PackageChangeReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <data android:scheme="package" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
