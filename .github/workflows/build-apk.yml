@@ -36,8 +36,9 @@ jobs:
       if: failure()
       shell: bash
       run: |
-        ERR_MSG=$(tail -n 35 build.log | tr '\r\n' '  ' | sed 's/"/\\"/g')
-        echo "::error title=Gradle Error::$ERR_MSG"
+        ERR_MSG=$(grep -A 20 "What went wrong:" build.log || grep -A 20 "FAILURE:" build.log || tail -n 60 build.log)
+        CLEAN_MSG=$(echo "$ERR_MSG" | tr '\r\n' ' ' | sed 's/"/\\"/g')
+        echo "::error title=Gradle Failure::$CLEAN_MSG"
 
     - name: Upload Build Log
       if: always()
