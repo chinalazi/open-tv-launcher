@@ -1,25 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="Theme.OpenTVLauncher" parent="Theme.Leanback">
-        <item name="android:windowBackground">#0F172A</item>
+        <item name="android:windowBackground">@color/bg_root</item>
     </style>
 
     <style name="Theme.OpenTVLauncher.Settings" parent="Theme.AppCompat.NoActionBar">
-        <item name="android:windowBackground">#0F172A</item>
-        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:windowBackground">@color/bg_root</item>
+        <item name="android:textColor">@color/text_primary</item>
     </style>
 
-    <style name="Theme.OpenTVLauncher.LockScreen" parent="Theme.AppCompat.NoActionBar">
-        <item name="android:windowBackground">#020617</item>
-        <item name="android:windowFullscreen">true</item>
+    <style name="SettingsButton">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">18dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:backgroundTint">@color/pin_key_bg</item>
     </style>
 
-    <style name="PinKeyStyle" parent="Widget.AppCompat.Button">
-        <item name="android:layout_width">90dp</item>
-        <item name="android:layout_height">70dp</item>
-        <item name="android:layout_margin">8dp</item>
-        <item name="android:textSize">22sp</item>
-        <item name="android:textColor">#FFFFFF</item>
-        <item name="android:backgroundTint">#334155</item>
-        <item name="android:focusable">true</item>
-    </style>
 </resources>

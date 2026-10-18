@@ -1,22 +1,33 @@
 package com.openlauncher.tv.ui.home
 
 import android.content.Context
-import android.graphics.Color
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
+import com.openlauncher.tv.R
 import com.openlauncher.tv.data.local.AppItemEntity
 
-class AppCardPresenter : Presenter() {
+class AppCardPresenter(
+    private val onLongClick: (AppItemEntity) -> Unit = {}
+) : Presenter() {
 
     override fun onCreateViewHolder(parent: ViewGroup): ViewHolder {
-        val cardView = ImageCardView(parent.context).apply {
+        val context = parent.context
+        val cardView = ImageCardView(context).apply {
             isFocusable = true
             isFocusableInTouchMode = true
-            setMainImageDimensions(260, 160)
-            setBackgroundColor(Color.parseColor("#252830"))
+            setMainImageDimensions(dp(context, 264), dp(context, 168))
+            setBackgroundColor(ContextCompat.getColor(context, R.color.card_bg))
+            foreground = ContextCompat.getDrawable(context, R.drawable.card_foreground)
+        }
+        cardView.setOnFocusChangeListener { view, focused ->
+            val scale = if (focused) 1.08f else 1.0f
+            view.animate()
+                .scaleX(scale)
+                .scaleY(scale)
+                .setDuration(if (focused) 220L else 150L)
+                .start()
         }
         return ViewHolder(cardView)
     }
@@ -24,17 +35,13 @@ class AppCardPresenter : Presenter() {
     override fun onBindViewHolder(viewHolder: ViewHolder, item: Any?) {
         val appItem = item as? AppItemEntity ?: return
         val cardView = viewHolder.view as ImageCardView
-        val context = cardView.context
 
         cardView.titleText = appItem.label
         cardView.contentText = appItem.packageName
-
-        try {
-            val pm = context.packageManager
-            val icon = pm.getApplicationIcon(appItem.packageName)
-            cardView.mainImageView.setImageDrawable(icon)
-        } catch (e: Exception) {
-            cardView.mainImageView.setImageResource(android.R.drawable.sym_def_app_icon)
+        cardView.mainImage = AppIconCache.get(cardView.context, appItem.packageName)
+        cardView.setOnLongClickListener {
+            onLongClick(appItem)
+            true
         }
     }
 
@@ -42,5 +49,9 @@ class AppCardPresenter : Presenter() {
         val cardView = viewHolder.view as ImageCardView
         cardView.badgeImage = null
         cardView.mainImage = null
+        cardView.setOnLongClickListener(null)
     }
+
+    private fun dp(context: Context, value: Int): Int =
+        (value * context.resources.displayMetrics.density + 0.5f).toInt()
 }

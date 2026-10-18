@@ -1,50 +1,58 @@
-# OpenTV Launcher 开发与编制记录 (develop.md)
+# 开发记录
 
-本项目记录了专为 Android TV / 电视机顶盒设计的纯离线、开源启动器（OpenTV Launcher）的完整开发过程。
+## 技术栈
 
----
+- Kotlin 1.9.22 + AGP 8.2.2 + Gradle 8.2，compileSdk/targetSdk 34，minSdk 24
+- AndroidX Leanback（桌面）、Room + KSP（分类/应用数据）、DataStore（家长控制状态）
+- 无网络权限、无网络库；release 沿用 debug 签名，方便 CI 直出可安装包
 
-## 阶段一：架构设计与工程脚手架搭建
+## 版本 1.1.0（本轮重写）
 
-### 1. 技术栈选型
-- **构建系统**: Gradle 8.2 + Android Gradle Plugin 8.2.2 + Kotlin 1.9.22
-- **UI 框架**: AndroidX Leanback 1.0.0 + Material Components + ViewBinding
-- **持久化层**: Room 2.6.1 + Jetpack DataStore Preferences
-- **协程调度**: Kotlin Coroutines (1.7.3) + Flow 响应式数据流
-- **零网络安全策略**: 移除了所有网络权限声明（零 `android.permission.INTERNET`），不包含任何 HTTP/网络库依赖。
+### 防沉迷（核心修复）
 
-### 2. 核心模块与职责划分
-1. **`app`**: Application 初始化与全局上下文服务。
-2. **`data.local`**:
-   - `CategoryEntity`：分类定义（系统默认/自定义分类、显示权重、儿童可见性）。
-   - `AppItemEntity`：应用属性映射（包名、Activity、所属分类、自定义标题、白名单标记、隐藏状态）。
-   - `AppDatabase`：Room 数据库实例与线程池调度。
-3. **`receiver`**:
-   - `PackageChangeReceiver`：监听应用安装、替换、卸载广播，实现桌面应用列表自动热刷新。
-4. **`service`**:
-   - `TimeTrackingService`：前台/后台运行的防沉迷观看时长监控服务，维持单次/每日倒计时与锁屏触发。
-5. **`ui.home`**:
-   - `MainActivity` & `HomeFragment`：基于 Leanback 构建 TV 桌面、横向卡片行（`ArrayObjectAdapter` + `ListRow`）、焦点平滑缩放与遥控器交互。
-6. **`ui.settings`**:
-   - `SettingsActivity`：设置总控抽屉，细分为**系统设置**直达与**启动器自身设置**。
-   - `CategoryManagerActivity`：分类管理与隐藏应用恢复。
-7. **`ui.parental`**:
-   - `ParentalSettingsActivity`：家长控制中心（PIN 码设置、单次/每日观看时长限制、白名单 App 管理）。
-8. **`ui.lock`**:
-   - `ScreenLockActivity`：防沉迷超时全屏锁屏阻断界面，拦截返回/菜单键，大号 D-Pad 数字密码键盘输入解锁。
-9. **`.github/workflows`**:
-   - `build-apk.yml`：配置 GitHub Actions 自动化编译工作流，推送代码自动构建 Release APK 并发布 Artifact。
+| 旧实现 | 新实现 |
+|---|---|
+| 后台 Service `startActivity` 拉起锁屏 Activity（Android 10+ 被 BAL 拦截，弹不出来） | 锁屏改为桌面 Activity 内的全屏遮罩，随状态显示 |
+| 锁屏是 `singleInstance` 独立任务，按 HOME 即可绕过，且只在"归零那一秒"边沿触发 | 状态驱动 + `onResume` 重新评估，`clearTaskOnLaunch` / `excludeFromRecents` |
+| 家长设置页无 PIN 门禁，可直接关闭儿童模式 | 进入即要求 PIN；改 PIN 需先验旧 PIN |
+| 解锁一律"续满单次时长"，无选择；每日上限字段声明未实现 | 解锁后可选「+30 分钟 / 今日不再限制」；每日上限与跨天重置完整实现 |
+| 每秒写一次 DataStore | 内存 StateFlow 计时，5 秒节流落盘 |
+| PIN 单轮 SHA-256 | PBKDF2-HMAC-SHA256 12 万次迭代 + SecureRandom 盐；错误 5 次锁 5 分钟 |
+| 计时不看亮屏 / 白名单照样扣时长 | 亮屏 + 前台白名单应用判定（UsageStats，可选授权） |
+| 后台服务不处理被杀后恢复 | `START_STICKY`，开机广播恢复计时 |
 
----
+### 桌面与数据
 
-## 阶段二：实施日志（Git Commits 追踪）
+- `HomeFragment` 改为 `combine(分类Flow, 应用Flow)` 单一渲染，装/卸载即时刷新，不再用 `first()` 拉一次
+- `PACKAGE_REMOVED` 判断 `EXTRA_REPLACING`，应用升级不再丢失用户配置（分类/隐藏/白名单）
+- 扫描时一次读取全表做差集，并清理已卸载/组件失效的残留项
+- 卡片焦点：放大 1.08 + 描边 selector；图标加 LruCache
+- 长按卡片：加入白名单 / 隐藏应用
+- Room 初始化竞态修复（默认分类改为按需创建，不再依赖 `INSTANCE` 的时序）
 
-- `47e6204`: 初始项目架构搭建、纯离线 TV Launcher、Leanback 响应式横向卡片行、Room 数据库、DataStore、防沉迷锁屏与 GitHub Actions 配置。
-- `527107d`: 补齐官方 Gradle 8.2 wrapper 二进制（`gradle-wrapper.jar`），并为 release 配置 debug 签名以便即开即用。
-- `c528f9e`: 修复 `settings.gradle.kts` 中的 Kotlin DSL 语法规范（`include(":app")`）。
-- `e72837c`: 修正 `app/build.gradle.kts` 中 `lint` DSL 属性名称并完善 CI 错误诊断提取。
-- `cf7ea4f`: 新增 `gradle.properties` 启用 `android.useAndroidX=true` 与 JVM 参数，成功解决 AndroidX 依赖合并校验。
-- **构建成果**: GitHub Actions 构建工作流运行通过（Run `39127072005`），成功输出签名可用的 Release APK（`OpenTVLauncher-Release-APK`，体积约 4.92 MB）。
+### 设置
 
+- 系统设置补齐：显示 / 声音 / 默认桌面
+- 分类管理：新增（预设名）、改名、调序、删除（应用迁移）、隐藏应用恢复
+- 防沉迷设置全部改为遥控器九宫格 / 按钮，规避小米固件软键盘不可用的问题
 
+### 工程
 
+- 移除未使用的 `material`、`constraintlayout`、`leanback-preference` 依赖
+- 开启 `buildConfig`（版本号展示）
+- `allowBackup=false`（避免 PIN 哈希被备份导出）
+- 新增 `deploy/deploy.py`（纯 Python ADB，无需 adb/SDK）
+- 新增 `tools/verify_static.py`（无 SDK 环境下的静态自检）
+- 删除 `ui/lock/ScreenLockActivity`（改为桌面内遮罩）
+
+## 历史版本
+
+- 1.0.0：初始工程骨架、Leanback 多行、Room、DataStore、CI 出包（约 4.92 MB）。
+
+## 尚未实现（后续）
+
+- 应用卡片手动排序 / 按启动频率排序（`sortWeight` 字段已预留）
+- 一个应用归属多个分类（需要关联表）
+- HDMI / 信号源切换（`TvInputManager`）、Live TV 直达
+- 悬浮窗级锁屏覆盖层（彻底防"最近任务"切走）、设备所有者 kiosk 模式
+- 单元测试（`ParentalState` 的跨天重置、额度计算适合先补）

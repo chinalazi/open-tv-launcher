@@ -3,7 +3,7 @@
     android:id="@+id/main_frame"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F172A">
+    android:background="@color/bg_root">
 
     <!-- 顶部状态栏信息 -->
     <LinearLayout
@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingStart="48dp"
-        android:paddingTop="24dp"
+        android:paddingTop="20dp"
         android:paddingEnd="48dp">
 
         <TextView
@@ -20,8 +20,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/app_name"
-            android:textColor="#F8FAFC"
-            android:textSize="28sp"
+            android:textColor="@color/text_primary"
+            android:textSize="26sp"
             android:textStyle="bold" />
 
         <TextView
@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="24dp"
-            android:textColor="#38BDF8"
+            android:textColor="@color/status_normal"
             android:textSize="18sp"
             android:visibility="gone" />
 
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:format12Hour="hh:mm a"
             android:format24Hour="HH:mm"
-            android:textColor="#94A3B8"
+            android:textColor="@color/text_secondary"
             android:textSize="22sp" />
 
     </LinearLayout>
@@ -48,6 +48,79 @@
         android:id="@+id/home_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="70dp" />
+        android:layout_marginTop="68dp" />
+
+    <!-- 防沉迷锁屏遮罩：由 MainActivity 的 Activity 自身承载，避免后台启动 Activity 被系统拦截 -->
+    <FrameLayout
+        android:id="@+id/lock_layer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_lock"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_lock_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="本次观看时间已用完"
+                android:textColor="@color/status_warn"
+                android:textSize="32sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tv_lock_hint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="请家长输入 4 位 PIN 码解锁"
+                android:textColor="#E2E8F0"
+                android:textSize="20sp" />
+
+            <com.openlauncher.tv.ui.common.PinPad
+                android:id="@+id/pin_pad"
+                android:layout_width="420dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp" />
+
+            <LinearLayout
+                android:id="@+id/lock_actions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <Button
+                    android:id="@+id/btn_lock_extra"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/pin_key_focus_bg"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    android:text="再加 30 分钟"
+                    android:textColor="@color/text_primary" />
+
+                <Button
+                    android:id="@+id/btn_lock_unlimited"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="24dp"
+                    android:text="今日不再限制"
+                    android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </FrameLayout>
 
 </FrameLayout>

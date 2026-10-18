@@ -10,67 +10,68 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
-    <!-- 必要的本地权限（注意：绝对无 INTERNET 权限，确保完全离线） -->
+    <!-- 本启动器不声明 INTERNET 权限：完全离线 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
+    <!-- 用于识别"当前前台是否白名单应用"；需用户在系统设置里手动授予使用情况访问权限 -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
     <application
         android:name=".app.LauncherApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:banner="@drawable/ic_launcher_banner"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.OpenTVLauncher">
 
-        <!-- 启动器主入口 Activity -->
+        <!-- 桌面主入口：同时声明 HOME 与 LEANBACK_LAUNCHER -->
         <activity
             android:name=".ui.home.MainActivity"
             android:banner="@drawable/ic_launcher_banner"
-            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize"
+            android:clearTaskOnLaunch="true"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+            android:excludeFromRecents="true"
             android:exported="true"
             android:launchMode="singleTask"
+            android:screenOrientation="landscape"
             android:stateNotNeeded="true"
             android:theme="@style/Theme.OpenTVLauncher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- 设置菜单 Activity（包含系统设置与启动器自身设置） -->
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.OpenTVLauncher.Settings" />
 
-        <!-- 分类管理 Activity -->
         <activity
             android:name=".ui.settings.CategoryManagerActivity"
             android:exported="false"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.OpenTVLauncher.Settings" />
 
-        <!-- 家长控制 / 儿童防沉迷设置 Activity -->
         <activity
             android:name=".ui.parental.ParentalSettingsActivity"
             android:exported="false"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.OpenTVLauncher.Settings" />
-
-        <!-- 超时全屏防沉迷锁屏 Activity -->
-        <activity
-            android:name=".ui.lock.ScreenLockActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:launchMode="singleInstance"
-            android:noHistory="false"
-            android:showOnLockScreen="true"
-            android:theme="@style/Theme.OpenTVLauncher.LockScreen" />
 
         <!-- 防沉迷计时服务 -->
         <service
@@ -83,7 +84,7 @@
                 android:value="ParentalScreenTimeTracking" />
         </service>
 
-        <!-- 应用安装卸载广播接收器 -->
+        <!-- 应用安装 / 卸载 / 开机广播 -->
         <receiver
             android:name=".receiver.PackageChangeReceiver"
             android:enabled="true"
