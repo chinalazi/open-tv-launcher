@@ -77,6 +77,12 @@ python deploy/deploy.py --host 192.168.1.50 --restore-stock com.mitv.tvhome
 
 > 电视需开启「开发者选项 → USB 调试」，并与电脑处于同一 Wi-Fi。首次连接时电视上会弹「允许 USB 调试」，记得允许。
 
+### 兼容性
+
+- 支持 **Android 6.0（API 23）及以上**，小米电视 4A 等停留在 Android 6.0 的国产机型可直接安装。
+- 最低版本已按 API 23 复查：`View.setForeground` / `getSystemService(Class)` 恰好是 API 23；前台服务类型、通知渠道、`ACTIVITY_RESUMED` 等均有版本判断；PIN 哈希在 API < 26 自动退回 `PBKDF2WithHmacSHA1`。
+- Android 6.0 上通知无需运行时授权；Android 13+ 首次启动会弹一次通知权限（用于前台服务提示）。
+
 ### 小米电视 4A 特别注意
 
 - 原桌面包名通常是 `com.mitv.tvhome`（PatchWall）或 `com.mitv.tvhome.atv`，先用 `--list-stock` 确认。

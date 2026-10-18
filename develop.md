@@ -2,7 +2,7 @@
 
 ## 技术栈
 
-- Kotlin 1.9.22 + AGP 8.2.2 + Gradle 8.2，compileSdk/targetSdk 34，minSdk 24
+- Kotlin 1.9.22 + AGP 8.2.2 + Gradle 8.2，compileSdk/targetSdk 34，minSdk 23（Android 6.0，兼容小米电视 4A）
 - AndroidX Leanback（桌面）、Room + KSP（分类/应用数据）、DataStore（家长控制状态）
 - 无网络权限、无网络库；release 沿用 debug 签名，方便 CI 直出可安装包
 
@@ -44,6 +44,11 @@
 - 新增 `deploy/deploy.py`（纯 Python ADB，无需 adb/SDK）
 - 新增 `tools/verify_static.py`（无 SDK 环境下的静态自检）
 - 删除 `ui/lock/ScreenLockActivity`（改为桌面内遮罩）
+
+## 版本 1.1.1
+
+- `minSdk` 24 → 23：小米电视 4A（Android 6.0 / API 23）此前报 `INSTALL_FAILED_OLDER_SDK` 装不上。
+- 复查全部 API 调用：`View.setForeground`、`Context.getSystemService(Class)` 均为 API 23；`startForeground(type)`、`NotificationChannel`、`ACTIVITY_RESUMED`、`FOREGROUND_SERVICE_TYPE_*` 都有版本判断；PBKDF2 在 API < 26 自动退回 `PBKDF2WithHmacSHA1`。
 
 ## 历史版本
 
