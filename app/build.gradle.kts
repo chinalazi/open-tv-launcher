@@ -13,8 +13,8 @@ android {
         // 小米电视 4A 等国产机型常停留在 Android 6.0（API 23）
         minSdk = 23
         targetSdk = 34
-        versionCode = 5
-        versionName = "1.2.0"
+        versionCode = 6
+        versionName = "1.2.1"
     }
 
     buildTypes {

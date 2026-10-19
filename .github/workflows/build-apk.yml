@@ -66,6 +66,8 @@ jobs:
         mkdir -p dist
         cp app/build/outputs/apk/release/app-release.apk \
            "dist/OpenTVLauncher-v${{ steps.ver.outputs.name }}.apk"
+        cp app/build/outputs/apk/debug/app-debug.apk \
+           "dist/OpenTVLauncher-v${{ steps.ver.outputs.name }}-debug.apk"
         ls -lh dist
 
     - name: Upload Build Log
@@ -94,20 +96,6 @@ jobs:
         if-no-files-found: error
         retention-days: 7
 
-    - name: Publish debug build (prerelease, for on-device debugging)
-      if: github.event_name != 'pull_request' && success()
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: debug-latest
-        name: Debug build (latest)
-        prerelease: true
-        files: app/build/outputs/apk/debug/*.apk
-        allowUpdates: true
-        body: |
-          仅供真机联调的 debug 包（含 `com.openlauncher.tv.DEBUG` 广播入口），不要日常使用。
-          触发锁屏：`adb shell am broadcast -a com.openlauncher.tv.DEBUG --es cmd lock`
-          恢复：`adb shell am broadcast -a com.openlauncher.tv.DEBUG --es cmd reset`
-
     - name: Publish GitHub Release
       if: github.event_name != 'pull_request' && success()
       uses: softprops/action-gh-release@v2
@@ -115,7 +103,6 @@ jobs:
         tag_name: v${{ steps.ver.outputs.name }}
         name: OpenTV Launcher v${{ steps.ver.outputs.name }}
         files: dist/*.apk
-        allowUpdates: true
         make_latest: true
         body: |
           ## OpenTV Launcher v${{ steps.ver.outputs.name }} (build ${{ steps.ver.outputs.code }})
@@ -136,3 +123,5 @@ jobs:
           - 小米电视若软键盘不可用，本版全部操作已改为遥控器可完成。
 
           构建：GitHub Actions run `${{ github.run_number }}` / commit `${{ github.sha }}`
+
+          > `-debug.apk` 是带联调广播的调试包（`am broadcast -a com.openlauncher.tv.DEBUG --es cmd lock`），日常请用正式包。
