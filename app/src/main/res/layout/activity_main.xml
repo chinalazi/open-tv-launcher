@@ -4,48 +4,217 @@
     android:layout_height="match_parent"
     android:background="@color/bg_root">
 
-    <!-- 顶部状态栏信息 -->
-    <LinearLayout
+    <!-- 跟随聚焦应用的氛围光 -->
+    <com.openlauncher.tv.ui.common.AmbientBackdropView
+        android:id="@+id/ambient_backdrop"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingStart="48dp"
-        android:paddingTop="20dp"
-        android:paddingEnd="48dp">
+        android:layout_height="match_parent" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/app_name"
-            android:textColor="@color/text_primary"
-            android:textSize="26sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tv_kids_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="24dp"
-            android:textColor="@color/status_normal"
-            android:textSize="18sp"
-            android:visibility="gone" />
-
-        <TextClock
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:format12Hour="hh:mm a"
-            android:format24Hour="HH:mm"
-            android:textColor="@color/text_secondary"
-            android:textSize="22sp" />
-
-    </LinearLayout>
-
-    <!-- Leanback 容器 Fragment -->
-    <FrameLayout
-        android:id="@+id/home_container"
+    <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="68dp" />
+        android:background="@drawable/bg_vignette" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingStart="62dp"
+        android:paddingTop="40dp"
+        android:paddingEnd="62dp"
+        android:paddingBottom="40dp">
+
+        <!-- ================= 顶栏 ================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:baselineAligned="false"
+            android:gravity="top"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_greeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.38"
+                    android:paddingStart="12dp"
+                    android:shadowColor="#99000000"
+                    android:shadowDy="2"
+                    android:shadowRadius="8"
+                    android:text="GOOD EVENING"
+                    android:textColor="#9EFFFFFF"
+                    android:textSize="11sp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:gravity="bottom"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tv_clock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-thin"
+                        android:includeFontPadding="false"
+                        android:letterSpacing="-0.02"
+                        android:shadowColor="#8C000000"
+                        android:shadowDy="6"
+                        android:shadowRadius="14"
+                        android:text="7:31"
+                        android:textColor="#FFFFFF"
+                        android:textSize="54sp" />
+
+                    <TextView
+                        android:id="@+id/tv_ampm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="9dp"
+                        android:layout_marginBottom="8dp"
+                        android:letterSpacing="0.16"
+                        android:text="PM"
+                        android:textColor="#CCFFFFFF"
+                        android:textSize="15sp" />
+
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="26dp"
+                        android:layout_marginStart="14dp"
+                        android:layout_marginBottom="9dp"
+                        android:background="#40FFFFFF" />
+
+                    <TextView
+                        android:id="@+id/tv_date"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_marginBottom="9dp"
+                        android:letterSpacing="0.22"
+                        android:text="MONDAY 19 OCTOBER"
+                        android:textColor="#B8FFFFFF"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/pill_kids"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/bg_pill_selector"
+                    android:drawableStart="@drawable/ic_clock"
+                    android:drawablePadding="8dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="17dp"
+                    android:paddingBottom="10dp"
+                    android:text="剩余 32:15"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/pill_wifi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/bg_pill_selector"
+                    android:drawableStart="@drawable/ic_wifi"
+                    android:drawablePadding="8dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="17dp"
+                    android:paddingBottom="10dp"
+                    android:text="Wi-Fi"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/pill_settings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_pill_selector"
+                    android:drawableStart="@drawable/ic_settings"
+                    android:drawablePadding="8dp"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="17dp"
+                    android:paddingBottom="10dp"
+                    android:text="设置"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- ================= 主区：常用应用一栏 ================= -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="118dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_hero"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-light"
+                    android:maxLines="1"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:shadowColor="#A6000000"
+                    android:shadowDy="8"
+                    android:shadowRadius="18"
+                    android:textColor="#FFFFFF"
+                    android:textSize="40sp" />
+
+                <LinearLayout
+                    android:id="@+id/row_apps"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:gravity="center"
+                    android:orientation="horizontal" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </FrameLayout>

@@ -100,6 +100,7 @@ def check_kotlin(res, ids):
         "CategoryManagerActivity.kt": "activity_category_manager",
         "ParentalSettingsActivity.kt": "activity_parental_settings",
         "LockScreenActivity.kt": "activity_lock",
+        "AllAppsActivity.kt": "activity_all_apps",
     }
     r_ref = re.compile(r"(?<!android\.)\bR\.(drawable|color|string|style|mipmap|layout|array|anim|id)\.([A-Za-z0-9_]+)")
 
@@ -131,6 +132,10 @@ def check_kotlin(res, ids):
                 if kind == "id":
                     if name not in all_ids:
                         errors.append(f"{rel}: 缺少 R.id.{name}")
+                elif kind == "style":
+                    # 带点的 style 名在 R 里会转成下划线
+                    if name not in {s.replace(".", "_") for s in res["style"]}:
+                        errors.append(f"{rel}: 缺少 R.style.{name}")
                 elif kind in res and name not in res[kind]:
                     errors.append(f"{rel}: 缺少 R.{kind}.{name}")
 

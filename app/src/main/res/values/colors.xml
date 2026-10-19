@@ -1,16 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_root">#0F172A</color>
-    <color name="bg_lock">#F2020617</color>
-    <color name="card_bg">#252830</color>
-    <color name="card_focus_stroke">#38BDF8</color>
-    <color name="card_focus_fill">#2238BDF8</color>
-    <color name="text_primary">#F8FAFC</color>
-    <color name="text_secondary">#94A3B8</color>
-    <color name="text_accent">#38BDF8</color>
-    <color name="status_normal">#38BDF8</color>
-    <color name="status_warn">#F43F5E</color>
-    <color name="pin_key_bg">#334155</color>
-    <color name="pin_key_focus_bg">#0284C7</color>
+    <!-- 底色：影院感纯黑 -->
+    <color name="bg_root">#05070C</color>
+    <color name="bg_lock">#05070C</color>
+
+    <!-- 玻璃拟态 -->
+    <color name="glass_bg">#14FFFFFF</color>
+    <color name="glass_stroke">#29FFFFFF</color>
+    <color name="glass_bg_strong">#24FFFFFF</color>
+    <color name="glass_stroke_strong">#8CFFFFFF</color>
+
+    <!-- 卡片 -->
+    <color name="card_bg">#1E1E1E</color>
+    <color name="card_focus_stroke">#FFFFFF</color>
+    <color name="card_focus_fill">#22FFFFFF</color>
+
+    <!-- 文字 -->
+    <color name="text_primary">#F2F6FC</color>
+    <color name="text_secondary">#9EFFFFFF</color>
+    <color name="text_tertiary">#66FFFFFF</color>
+    <color name="text_accent">#FFFFFF</color>
+    <color name="text_on_light">#111214</color>
+
+    <!-- 状态 -->
+    <color name="status_normal">#F2F6FC</color>
+    <color name="status_warn">#FF5D78</color>
+
+    <!-- PIN 键 -->
+    <color name="pin_key_bg">#17FFFFFF</color>
+    <color name="pin_key_focus_bg">#3DFFFFFF</color>
+
     <color name="ic_launcher_background">#0284C7</color>
 </resources>

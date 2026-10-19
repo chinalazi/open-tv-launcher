@@ -1,118 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_root"
-    android:padding="48dp">
+    android:background="@color/bg_root">
+
+    <com.openlauncher.tv.ui.common.AmbientBackdropView
+        android:id="@+id/ambient_backdrop"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_vignette" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="62dp"
+        android:paddingTop="40dp"
+        android:paddingEnd="62dp"
+        android:paddingBottom="32dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="设置菜单"
-            android:textColor="@color/text_primary"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:fontFamily="sans-serif-medium"
+            android:text="设置"
+            android:textColor="#FFFFFF"
+            android:textSize="30sp" />
 
-        <!-- 系统原生设置分组 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
-            android:text="电视系统设置"
-            android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            android:layout_marginTop="6dp"
+            android:letterSpacing="0.1"
+            android:text="系统入口与家长控制，全部可以用遥控器完成"
+            android:textColor="#8CFFFFFF"
+            android:textSize="12sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_height="0dp"
+            android:layout_marginTop="24dp"
+            android:layout_weight="1"
+            android:baselineAligned="false"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/btn_system_settings"
-                style="@style/SettingsButton"
-                android:text="全部系统设置" />
+            <LinearLayout
+                android:id="@+id/nav_container"
+                android:layout_width="224dp"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:orientation="vertical" />
 
-            <Button
-                android:id="@+id/btn_wifi"
-                style="@style/SettingsButton"
-                android:text="Wi-Fi 网络" />
+            <ScrollView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="26dp"
+                android:layout_weight="1"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:scrollbars="none">
 
-            <Button
-                android:id="@+id/btn_bluetooth"
-                style="@style/SettingsButton"
-                android:text="蓝牙与遥控器" />
+                <LinearLayout
+                    android:id="@+id/panel_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="vertical"
+                    android:paddingBottom="8dp" />
 
-            <Button
-                android:id="@+id/btn_apps"
-                style="@style/SettingsButton"
-                android:text="应用管理" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_display"
-                style="@style/SettingsButton"
-                android:text="显示设置" />
-
-            <Button
-                android:id="@+id/btn_sound"
-                style="@style/SettingsButton"
-                android:text="声音设置" />
-
-            <Button
-                android:id="@+id/btn_home"
-                style="@style/SettingsButton"
-                android:text="默认桌面设置" />
+            </ScrollView>
 
         </LinearLayout>
-
-        <!-- 软件自身功能设置分组 -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="启动器偏好与家长控制"
-            android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_parental"
-                style="@style/SettingsButton"
-                android:text="儿童模式与防沉迷" />
-
-            <Button
-                android:id="@+id/btn_categories"
-                style="@style/SettingsButton"
-                android:text="分类与应用管理" />
-
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/tv_version"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:lineSpacingExtra="4dp"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
 
     </LinearLayout>
-</ScrollView>
+
+</FrameLayout>

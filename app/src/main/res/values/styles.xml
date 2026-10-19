@@ -3,6 +3,8 @@
 
     <style name="Theme.OpenTVLauncher" parent="Theme.Leanback">
         <item name="android:windowBackground">@color/bg_root</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
     </style>
 
     <style name="Theme.OpenTVLauncher.Settings" parent="Theme.AppCompat.NoActionBar">
@@ -13,6 +15,20 @@
     <style name="Theme.OpenTVLauncher.LockScreen" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/bg_lock</item>
         <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- 全屏页面（全部应用） -->
+    <style name="Theme.OpenTVLauncher.Fullscreen" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/bg_root</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <!-- 玻璃菜单弹窗 -->
+    <style name="Theme.OpenTVLauncher.Dialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimAmount">0.7</item>
     </style>
 
     <style name="SettingsButton">

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 四周压暗：中心透明、边缘收敛到黑，形成影院感的画框 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerX="0.5"
+                android:centerY="0.45"
+                android:endColor="#8C000000"
+                android:gradientRadius="760dp"
+                android:startColor="#00000000"
+                android:type="radial" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:centerColor="#00000000"
+                android:centerY="0.5"
+                android:endColor="#73000000"
+                android:startColor="#73000000" />
+        </shape>
+    </item>
+
+</layer-list>
