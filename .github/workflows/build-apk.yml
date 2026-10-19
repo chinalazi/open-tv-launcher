@@ -94,6 +94,20 @@ jobs:
         if-no-files-found: error
         retention-days: 7
 
+    - name: Publish debug build (prerelease, for on-device debugging)
+      if: github.event_name != 'pull_request' && success()
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: debug-latest
+        name: Debug build (latest)
+        prerelease: true
+        files: app/build/outputs/apk/debug/*.apk
+        allowUpdates: true
+        body: |
+          仅供真机联调的 debug 包（含 `com.openlauncher.tv.DEBUG` 广播入口），不要日常使用。
+          触发锁屏：`adb shell am broadcast -a com.openlauncher.tv.DEBUG --es cmd lock`
+          恢复：`adb shell am broadcast -a com.openlauncher.tv.DEBUG --es cmd reset`
+
     - name: Publish GitHub Release
       if: github.event_name != 'pull_request' && success()
       uses: softprops/action-gh-release@v2
