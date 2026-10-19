@@ -69,7 +69,7 @@ class HomeFragment : RowsSupportFragment() {
 
         // 第一行：常驻快捷入口
         val actionAdapter = ArrayObjectAdapter(ActionItemPresenter())
-        actionAdapter.add(ActionItem(1, "电视系统设置", android.R.drawable.ic_menu_preferences))
+        actionAdapter.add(ActionItem(1, "系统设置", android.R.drawable.ic_menu_preferences))
         actionAdapter.add(ActionItem(2, "启动器设置", android.R.drawable.ic_menu_manage))
         actionAdapter.add(ActionItem(3, "儿童模式与防沉迷", android.R.drawable.ic_lock_lock))
         rowsAdapter.add(ListRow(HeaderItem(0, "系统与控制"), actionAdapter))
@@ -132,13 +132,9 @@ class HomeFragment : RowsSupportFragment() {
 
     private fun handleActionItem(item: ActionItem) {
         when (item.id) {
-            1 -> {
-                if (!SystemSettingsLauncher.open(requireContext(), SystemSettingsLauncher.Target.ROOT)) {
-                    toast("这台电视没有提供系统设置入口")
-                }
-            }
-
-            2 -> startActivity(Intent(requireContext(), SettingsActivity::class.java))
+            // 小米电视的系统设置主页是"弹窗型" Activity，第三方应用拉起会被系统收回，
+            // 所以这里先进本应用的设置页，由它提供可用的分类入口（Wi-Fi / 蓝牙 / 图像声音 / 应用…）。
+            1, 2 -> startActivity(Intent(requireContext(), SettingsActivity::class.java))
 
             3 -> startActivity(Intent(requireContext(), ParentalSettingsActivity::class.java))
         }

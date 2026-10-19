@@ -44,8 +44,12 @@ class SettingsActivity : FragmentActivity() {
     }
 
     private fun openSystem(target: SystemSettingsLauncher.Target) {
-        if (!SystemSettingsLauncher.open(this, target)) {
-            Toast.makeText(this, "这台电视没有提供该设置入口", Toast.LENGTH_SHORT).show()
+        if (SystemSettingsLauncher.open(this, target)) return
+        val hint = if (target == SystemSettingsLauncher.Target.ROOT) {
+            "这台电视不允许第三方应用打开设置主页，请用下面的分类入口"
+        } else {
+            "这台电视没有提供该设置入口"
         }
+        Toast.makeText(this, hint, Toast.LENGTH_LONG).show()
     }
 }

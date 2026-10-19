@@ -69,15 +69,15 @@ object SystemSettingsLauncher {
         )
 
         Target.DISPLAY -> listOf(
+            component(MI, "$MI.entry.DisplaySoundActivity"),
             action("com.xiaomi.mitv.settings.DISPLAYSOUND_SETTINGS"),
-            action(Settings.ACTION_DISPLAY_SETTINGS),
-            component(MI, "$MI.entry.DisplaySoundActivity")
+            action(Settings.ACTION_DISPLAY_SETTINGS)
         )
 
         Target.SOUND -> listOf(
+            component(MI, "$MI.entry.DisplaySoundActivity"),
             action("com.xiaomi.mitv.settings.DISPLAYSOUND_SETTINGS"),
-            action(Settings.ACTION_SOUND_SETTINGS),
-            component(MI, "$MI.entry.DisplaySoundActivity")
+            action(Settings.ACTION_SOUND_SETTINGS)
         )
 
         Target.APPS -> listOf(
