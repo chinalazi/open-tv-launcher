@@ -6,6 +6,7 @@ import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.VerticalGridView
+import androidx.recyclerview.widget.RecyclerView
 import androidx.lifecycle.lifecycleScope
 import com.openlauncher.tv.R
 import com.openlauncher.tv.app.LauncherApplication
@@ -23,6 +24,7 @@ class AllAppsActivity : FragmentActivity() {
     private lateinit var countView: TextView
     private lateinit var adapter: ArrayObjectAdapter
 
+    @Suppress("UNCHECKED_CAST")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_all_apps)
@@ -48,7 +50,7 @@ class AllAppsActivity : FragmentActivity() {
                 }
             )
         )
-        grid.adapter = adapter
+        grid.adapter = adapter as RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         observeApps()
     }

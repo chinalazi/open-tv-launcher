@@ -61,7 +61,7 @@ class AppTileView @JvmOverloads constructor(
             ellipsize = TextUtils.TruncateAt.END
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         }
-        row.addView(labelView, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT))
+        row.addView(labelView, LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
         addView(row, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
 
         setOnFocusChangeListener { _, focused ->
