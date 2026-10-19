@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_lock"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="本次观看时间已用完"
+            android:textColor="@color/status_warn"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_lock_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="请家长输入 4 位 PIN 码解锁"
+            android:textColor="#E2E8F0"
+            android:textSize="20sp" />
+
+        <com.openlauncher.tv.ui.common.PinPad
+            android:id="@+id/pin_pad"
+            android:layout_width="420dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp" />
+
+        <LinearLayout
+            android:id="@+id/lock_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btn_lock_extra"
+                style="@style/SettingsButton"
+                android:text="再加 30 分钟" />
+
+            <Button
+                android:id="@+id/btn_lock_unlimited"
+                style="@style/SettingsButton"
+                android:text="今日不再限制" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

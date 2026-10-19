@@ -99,6 +99,7 @@ def check_kotlin(res, ids):
         "SettingsActivity.kt": "activity_settings",
         "CategoryManagerActivity.kt": "activity_category_manager",
         "ParentalSettingsActivity.kt": "activity_parental_settings",
+        "LockScreenActivity.kt": "activity_lock",
     }
     r_ref = re.compile(r"(?<!android\.)\bR\.(drawable|color|string|style|mipmap|layout|array|anim|id)\.([A-Za-z0-9_]+)")
 

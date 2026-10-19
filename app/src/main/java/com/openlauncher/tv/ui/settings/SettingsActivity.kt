@@ -3,7 +3,6 @@ package com.openlauncher.tv.ui.settings
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import com.openlauncher.tv.BuildConfig
@@ -28,13 +27,13 @@ class SettingsActivity : FragmentActivity() {
     }
 
     private fun setupClickListeners() {
-        binding.btnSystemSettings.setOnClickListener { launchSettingSafe(Settings.ACTION_SETTINGS) }
-        binding.btnWifi.setOnClickListener { launchSettingSafe(Settings.ACTION_WIFI_SETTINGS) }
-        binding.btnBluetooth.setOnClickListener { launchSettingSafe(Settings.ACTION_BLUETOOTH_SETTINGS) }
-        binding.btnApps.setOnClickListener { launchSettingSafe(Settings.ACTION_APPLICATION_SETTINGS) }
-        binding.btnDisplay.setOnClickListener { launchSettingSafe(Settings.ACTION_DISPLAY_SETTINGS) }
-        binding.btnSound.setOnClickListener { launchSettingSafe(Settings.ACTION_SOUND_SETTINGS) }
-        binding.btnHome.setOnClickListener { launchSettingSafe(Settings.ACTION_HOME_SETTINGS) }
+        binding.btnSystemSettings.setOnClickListener { openSystem(SystemSettingsLauncher.Target.ROOT) }
+        binding.btnWifi.setOnClickListener { openSystem(SystemSettingsLauncher.Target.WIFI) }
+        binding.btnBluetooth.setOnClickListener { openSystem(SystemSettingsLauncher.Target.BLUETOOTH) }
+        binding.btnApps.setOnClickListener { openSystem(SystemSettingsLauncher.Target.APPS) }
+        binding.btnDisplay.setOnClickListener { openSystem(SystemSettingsLauncher.Target.DISPLAY) }
+        binding.btnSound.setOnClickListener { openSystem(SystemSettingsLauncher.Target.SOUND) }
+        binding.btnHome.setOnClickListener { openSystem(SystemSettingsLauncher.Target.HOME) }
 
         binding.btnParental.setOnClickListener {
             startActivity(Intent(this, ParentalSettingsActivity::class.java))
@@ -44,11 +43,9 @@ class SettingsActivity : FragmentActivity() {
         }
     }
 
-    private fun launchSettingSafe(action: String) {
-        try {
-            startActivity(Intent(action))
-        } catch (e: Exception) {
-            Toast.makeText(this, "该电视系统暂不支持快速唤起该选项", Toast.LENGTH_SHORT).show()
+    private fun openSystem(target: SystemSettingsLauncher.Target) {
+        if (!SystemSettingsLauncher.open(this, target)) {
+            Toast.makeText(this, "这台电视没有提供该设置入口", Toast.LENGTH_SHORT).show()
         }
     }
 }

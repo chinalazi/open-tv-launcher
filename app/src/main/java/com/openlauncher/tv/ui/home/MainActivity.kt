@@ -4,20 +4,17 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.view.KeyEvent
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.openlauncher.tv.R
 import com.openlauncher.tv.app.LauncherApplication
-import com.openlauncher.tv.data.parental.ParentalRepository
 import com.openlauncher.tv.data.parental.ParentalState
-import com.openlauncher.tv.data.parental.PinResult
 import com.openlauncher.tv.databinding.ActivityMainBinding
 import com.openlauncher.tv.service.TimeTrackingService
+import com.openlauncher.tv.ui.lock.LockScreenLauncher
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -27,7 +24,6 @@ class MainActivity : FragmentActivity() {
     private lateinit var binding: ActivityMainBinding
     private val launcherApp: LauncherApplication get() = application as LauncherApplication
 
-    private var lockLayerShown = false
     private var trackingServiceRunning = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,17 +37,17 @@ class MainActivity : FragmentActivity() {
                 .commit()
         }
 
-        setupLockPad()
-        setupLockActions()
         observeParentalState()
         requestNotificationPermission()
     }
 
     override fun onResume() {
         super.onResume()
-        // 回到桌面（含按 HOME 键）时重新评估锁定状态：锁屏遮罩会立刻回到最前
-        lockLayerShown = false
-        applyState(launcherApp.parental.state.value)
+        // 回到桌面时若仍处于锁定状态，立刻把锁屏盖回来（防止按 HOME 绕过）
+        val state = launcherApp.parental.state.value
+        if (state.kidsMode && state.locked) {
+            LockScreenLauncher.show(this)
+        }
     }
 
     // ---- 防沉迷状态 -------------------------------------------------------------
@@ -68,25 +64,6 @@ class MainActivity : FragmentActivity() {
     private fun applyState(state: ParentalState) {
         updateKidsStatus(state)
         updateTrackingService(state.kidsMode)
-
-        val showLock = state.kidsMode && state.locked
-        binding.lockLayer.visibility = if (showLock) View.VISIBLE else View.GONE
-        binding.homeContainer.descendantFocusability = if (showLock) {
-            ViewGroup.FOCUS_BLOCK_DESCENDANTS
-        } else {
-            ViewGroup.FOCUS_AFTER_DESCENDANTS
-        }
-
-        if (showLock && !lockLayerShown) {
-            binding.pinPad.clear()
-            binding.pinPad.visibility = View.VISIBLE
-            binding.lockActions.visibility = View.GONE
-            binding.tvLockHint.text = "请家长输入 ${ParentalRepository.PIN_LENGTH} 位 PIN 码解锁"
-            binding.pinPad.focusFirst()
-        } else if (!showLock && lockLayerShown) {
-            binding.pinPad.clear()
-        }
-        lockLayerShown = showLock
     }
 
     private fun updateKidsStatus(state: ParentalState) {
@@ -116,75 +93,7 @@ class MainActivity : FragmentActivity() {
         } else {
             TimeTrackingService.stopService(this)
         }
-    }
-
-    // ---- 锁屏交互 ---------------------------------------------------------------
-
-    private fun setupLockPad() {
-        binding.pinPad.setOnPinComplete { pin -> verifyPin(pin) }
-    }
-
-    private fun verifyPin(pin: String) {
-        lifecycleScope.launch {
-            when (val result = launcherApp.parental.verifyPin(pin)) {
-                PinResult.Ok -> {
-                    binding.pinPad.clear()
-                    binding.pinPad.visibility = View.GONE
-                    binding.lockActions.visibility = View.VISIBLE
-                    binding.tvLockHint.text = "验证成功，请选择继续观看的时长"
-                    binding.btnLockExtra.requestFocus()
-                }
-
-                is PinResult.Wrong -> {
-                    binding.pinPad.clear()
-                    toast("PIN 码错误，还可尝试 ${result.attemptsLeft} 次")
-                }
-
-                is PinResult.LockedOut -> {
-                    binding.pinPad.clear()
-                    val minutes = ((result.untilMs - System.currentTimeMillis()) / 60_000L + 1)
-                        .coerceAtLeast(1L)
-                    toast("尝试次数过多，请 $minutes 分钟后再试")
-                }
-
-                PinResult.NotSet -> {
-                    binding.pinPad.clear()
-                    toast("尚未设置家长 PIN 码，请先到设置里设置")
-                }
-            }
-        }
-    }
-
-    private fun setupLockActions() {
-        binding.btnLockExtra.setOnClickListener {
-            launcherApp.parental.grantExtraMinutes(30)
-            toast("已增加 30 分钟")
-        }
-        binding.btnLockUnlimited.setOnClickListener {
-            launcherApp.parental.grantUnlimitedToday()
-            toast("今日不再限制观看时长")
-        }
-    }
-
-    // ---- 按键 -------------------------------------------------------------------
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (lockLayerShown) {
-            when (keyCode) {
-                KeyEvent.KEYCODE_BACK,
-                KeyEvent.KEYCODE_MENU,
-                KeyEvent.KEYCODE_ESCAPE -> return true
-            }
-            if (binding.pinPad.visibility == View.VISIBLE && binding.pinPad.handleKey(keyCode)) {
-                return true
-            }
-        }
-        return super.onKeyDown(keyCode, event)
-    }
-
-    @Deprecated("桌面根界面按返回键不退出")
-    override fun onBackPressed() {
-        // 作为默认桌面，Back 不退出
+        Log.d(TAG, "trackingService running=$kidsMode")
     }
 
     // ---- 其他 -------------------------------------------------------------------
@@ -200,7 +109,12 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private fun toast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    @Deprecated("桌面根界面按返回键不退出")
+    override fun onBackPressed() {
+        // 作为默认桌面，Back 不退出
+    }
+
+    companion object {
+        private const val TAG = "OpenTVMain"
     }
 }

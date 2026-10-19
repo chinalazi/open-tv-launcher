@@ -13,6 +13,7 @@ import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.openlauncher.tv.app.LauncherApplication
 import com.openlauncher.tv.data.parental.ParentalState
+import com.openlauncher.tv.ui.lock.LockScreenLauncher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -70,6 +71,7 @@ class TimeTrackingService : Service() {
             var foregroundPkg: String? = null
             var ticks = 0
             var lastLockNoticeAt = 0L
+            var lockNotified = false
 
             while (isActive) {
                 delay(1_000L)
@@ -109,6 +111,15 @@ class TimeTrackingService : Service() {
 
                 if (ticks % 30 == 0 && !state.locked) {
                     notifyText(describeRemaining(app.parental.state.value))
+                }
+
+                // 进入锁定态：把锁屏盖到当前前台应用之上（体感上比"回桌面才锁"及时得多）
+                val latest = app.parental.state.value
+                if (latest.locked && !lockNotified) {
+                    lockNotified = true
+                    LockScreenLauncher.show(this@TimeTrackingService)
+                } else if (!latest.locked) {
+                    lockNotified = false
                 }
             }
         }

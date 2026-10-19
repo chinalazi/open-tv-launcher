@@ -1,6 +1,8 @@
 package com.openlauncher.tv.data.parental
 
 import android.content.Context
+import android.os.SystemClock
+import android.util.Log
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -8,6 +10,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
@@ -172,7 +176,7 @@ class ParentalRepository(
         val iterations = PIN_ITERATIONS
         val algorithm = pickPbkdf2Algorithm()
         val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
-        val hash = pbkdf2(pin, salt, iterations, algorithm)
+        val hash = withContext(Dispatchers.Default) { pbkdf2(pin, salt, iterations, algorithm) }
         context.parentalDataStore.edit { prefs ->
             prefs[K_PIN_SALT] = salt.toHex()
             prefs[K_PIN_HASH] = hash.toHex()
@@ -183,6 +187,7 @@ class ParentalRepository(
     }
 
     suspend fun verifyPin(pin: String): PinResult {
+        val startedAt = SystemClock.elapsedRealtime()
         val now = System.currentTimeMillis()
         val snapshot = _state.value
         if (snapshot.isLockedOut(now)) return PinResult.LockedOut(snapshot.lockoutUntilMs)
@@ -195,8 +200,12 @@ class ParentalRepository(
 
         val algorithm = prefs[K_PIN_ALGO] ?: ALGO_SHA1
         val iterations = prefs[K_PIN_ITER] ?: PIN_ITERATIONS
-        val candidate = pbkdf2(pin, saltHex.hexToBytes(), iterations, algorithm)
+        // PBKDF2 很吃 CPU：必须离开主线程，否则输完最后一位会卡住界面
+        val candidate = withContext(Dispatchers.Default) {
+            pbkdf2(pin, saltHex.hexToBytes(), iterations, algorithm)
+        }
         val ok = MessageDigest.isEqual(candidate, hashHex.hexToBytes())
+        Log.d(TAG, "verifyPin cost=${SystemClock.elapsedRealtime() - startedAt}ms iterations=$iterations")
 
         if (ok) {
             mutate({ s -> s.copy(failedAttempts = 0, lockoutUntilMs = 0) }, true)
@@ -314,6 +323,7 @@ class ParentalRepository(
     }
 
     companion object {
+        private const val TAG = "ParentalRepository"
         const val PIN_LENGTH = 4
         const val MAX_ATTEMPTS = 5
         private const val LOCKOUT_DURATION_MS = 5 * 60 * 1000L

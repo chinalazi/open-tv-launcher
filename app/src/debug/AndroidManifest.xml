@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 仅 debug 构建存在：真机联调用的命令接收器，release 不包含 -->
+    <application>
+        <receiver
+            android:name="com.openlauncher.tv.debug.DebugCommandReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.openlauncher.tv.DEBUG" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

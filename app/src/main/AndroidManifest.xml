@@ -73,6 +73,15 @@
             android:screenOrientation="landscape"
             android:theme="@style/Theme.OpenTVLauncher.Settings" />
 
+        <!-- 超时锁屏（独立 Activity，可覆盖在视频之上） -->
+        <activity
+            android:name=".ui.lock.LockScreenActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.OpenTVLauncher.LockScreen" />
+
         <!-- 防沉迷计时服务 -->
         <service
             android:name=".service.TimeTrackingService"
