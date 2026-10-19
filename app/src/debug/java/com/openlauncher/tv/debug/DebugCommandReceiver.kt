@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import com.openlauncher.tv.app.LauncherApplication
 import com.openlauncher.tv.service.TimeTrackingService
+import com.openlauncher.tv.ui.settings.SystemSettingsLauncher
 import kotlinx.coroutines.launch
 
 /**
@@ -31,6 +32,15 @@ class DebugCommandReceiver : BroadcastReceiver() {
             // 直接把家长 PIN 设为 1234，省去在电视上点九宫格
             "pin" -> {
                 app.applicationScope.launch { app.parental.setPin("1234") }
+            }
+
+            // 联调系统设置各入口：--es cmd sysset --es target WIFI
+            "sysset" -> {
+                val name = intent.getStringExtra("target").orEmpty().ifEmpty { "ROOT" }
+                val target = runCatching { SystemSettingsLauncher.Target.valueOf(name) }
+                    .getOrDefault(SystemSettingsLauncher.Target.ROOT)
+                val ok = SystemSettingsLauncher.open(context, target)
+                Log.d(TAG, "sysset $target -> $ok")
             }
 
             "reset" -> {
