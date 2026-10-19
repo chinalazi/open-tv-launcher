@@ -1,5 +1,6 @@
 package com.openlauncher.tv.ui.settings
 
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -30,7 +31,9 @@ object SystemSettingsLauncher {
      * 部分定制 ROM（小米电视）对显式组件会返回 null，但实际可以启动。
      */
     private fun tryStart(context: Context, intent: Intent): Boolean {
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // 从 Activity 拉起时不加 NEW_TASK：小米电视的系统设置是个"弹窗型"Activity，
+        // 用新任务启动会被立刻 pause 掉（日志里的 Activity pause timeout）；并入当前任务才能正常显示。
+        if (context !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val label = intent.component?.flattenToShortString() ?: intent.action
         return try {
             context.startActivity(intent)
