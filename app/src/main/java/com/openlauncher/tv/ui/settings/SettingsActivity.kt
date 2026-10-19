@@ -40,6 +40,9 @@ class SettingsActivity : FragmentActivity() {
         findViewById<AmbientBackdropView>(R.id.ambient_backdrop)
             .setGlowColor(0xFF2A4B8C.toInt(), false)
 
+        val side = if (resources.configuration.screenWidthDp < 1200) 44 else 62
+        findViewById<View>(R.id.content).setPadding(dp(side), dp(40), dp(side), dp(32))
+
         nav = findViewById(R.id.nav_container)
         panel = findViewById(R.id.panel_container)
 

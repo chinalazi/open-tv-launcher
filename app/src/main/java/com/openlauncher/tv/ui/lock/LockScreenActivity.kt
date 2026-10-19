@@ -59,6 +59,9 @@ class LockScreenActivity : FragmentActivity() {
         metaView = findViewById(R.id.tv_lock_meta)
         clockView = findViewById(R.id.tv_lock_clock)
 
+        val side = if (resources.configuration.screenWidthDp < 1200) 44 else 62
+        findViewById<View>(R.id.content).setPadding(dp(side), dp(38), dp(side), dp(38))
+
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         window.decorView.systemUiVisibility = (
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -185,6 +188,9 @@ class LockScreenActivity : FragmentActivity() {
     override fun onBackPressed() {
         // 不允许返回
     }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density + 0.5f).toInt()
 
     private fun toast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()

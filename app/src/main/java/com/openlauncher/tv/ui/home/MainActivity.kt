@@ -90,6 +90,9 @@ class MainActivity : FragmentActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        val side = sidePadding()
+        findViewById<View>(R.id.content).setPadding(dp(side), dp(40), dp(side), dp(40))
+
         pillWifi.text = wifiLabel()
         observeApps()
         observeParentalState()
@@ -137,12 +140,16 @@ class MainActivity : FragmentActivity() {
     private fun renderHome(categories: List<CategoryEntity>, apps: List<AppItemEntity>) {
         val focusedTag = (currentFocus?.takeIf { it.parent === rowApps }?.tag) as? String
         val homeApps = pickHomeApps(categories, apps)
-        val showMore = homeApps.size > MAX_TILES
-        val visible = if (showMore) homeApps.take(MAX_TILES - 1) else homeApps
+
+        val columns = homeColumns()
+        val tileWidth = tileWidthDp(columns)
+        val tileHeight = (tileWidth * AppTileView.BASE_HEIGHT / AppTileView.BASE_WIDTH.toFloat()).toInt()
+        val showMore = homeApps.size > columns
+        val visible = if (showMore) homeApps.take(columns - 1) else homeApps
 
         rowApps.removeAllViews()
-        visible.forEach { rowApps.addView(createTile(it)) }
-        if (showMore) rowApps.addView(createMoreTile())
+        visible.forEach { rowApps.addView(createTile(it, tileWidth, tileHeight)) }
+        if (showMore) rowApps.addView(createMoreTile(tileWidth, tileHeight))
 
         val restored = focusedTag != null && restoreFocus(focusedTag)
         if (!restored) {
@@ -170,13 +177,13 @@ class MainActivity : FragmentActivity() {
         return apps
     }
 
-    private fun createTile(item: AppItemEntity): View {
+    private fun createTile(item: AppItemEntity, widthDp: Int, heightDp: Int): View {
         val tile = AppTileView(this)
-        val lp = LinearLayout.LayoutParams(dp(176), dp(114))
-        lp.marginEnd = dp(12)
+        val lp = LinearLayout.LayoutParams(dp(widthDp), dp(heightDp))
+        lp.marginEnd = dp(TILE_GAP)
         tile.layoutParams = lp
         tile.tag = item.packageName
-        tile.bindApp(item)
+        tile.bindApp(item, compact = false, baseWidthDp = widthDp)
         tile.onTileFocus = { view, focused ->
             if (focused) {
                 heroView.text = item.label
@@ -191,12 +198,12 @@ class MainActivity : FragmentActivity() {
         return tile
     }
 
-    private fun createMoreTile(): View {
+    private fun createMoreTile(widthDp: Int, heightDp: Int): View {
         val tile = AppTileView(this)
-        val lp = LinearLayout.LayoutParams(dp(176), dp(114))
+        val lp = LinearLayout.LayoutParams(dp(widthDp), dp(heightDp))
         tile.layoutParams = lp
         tile.tag = TAG_MORE
-        tile.bindMore()
+        tile.bindMore(compact = false, baseWidthDp = widthDp)
         tile.onTileFocus = { view, focused ->
             if (focused) {
                 heroView.text = "全部应用"
@@ -320,11 +327,35 @@ class MainActivity : FragmentActivity() {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_LONG).show()
     }
 
+    // ---- 自适应尺寸 -------------------------------------------------------------
+
+    private fun sidePadding(): Int =
+        if (resources.configuration.screenWidthDp < 1200) 44 else 62
+
+    private fun contentWidthDp(): Int =
+        resources.configuration.screenWidthDp - sidePadding() * 2
+
+    /** 能放下几个 176dp 卡位就放几个，最少 3 个；不足时整体等比缩小到 6 个。 */
+    private fun homeColumns(): Int {
+        var columns = MAX_TILES
+        while (columns > 3) {
+            val width = (contentWidthDp() - (columns - 1) * TILE_GAP) / columns
+            if (width >= MIN_TILE_WIDTH) break
+            columns--
+        }
+        return columns
+    }
+
+    private fun tileWidthDp(columns: Int): Int =
+        (contentWidthDp() - (columns - 1) * TILE_GAP) / columns
+
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density + 0.5f).toInt()
 
     private companion object {
         const val MAX_TILES = 6
+        const val TILE_GAP = 12
+        const val MIN_TILE_WIDTH = 112
         const val TAG_MORE = "__more__"
     }
 }

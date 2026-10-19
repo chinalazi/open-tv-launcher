@@ -6,8 +6,8 @@ import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.VerticalGridView
-import androidx.recyclerview.widget.RecyclerView
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import com.openlauncher.tv.R
 import com.openlauncher.tv.app.LauncherApplication
 import com.openlauncher.tv.ui.common.AmbientBackdropView
@@ -29,6 +29,9 @@ class AllAppsActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_all_apps)
 
+        val side = sidePadding()
+        findViewById<View>(R.id.content).setPadding(dp(side), dp(38), dp(side), dp(28))
+
         ambient = findViewById(R.id.ambient_backdrop)
         ambient.setGlowColor(0xFF4B3E8C.toInt(), false)
         countView = findViewById(R.id.tv_count)
@@ -36,13 +39,20 @@ class AllAppsActivity : FragmentActivity() {
 
         findViewById<View>(R.id.pill_back).setOnClickListener { finish() }
 
-        grid.setNumColumns(6)
-        grid.setHorizontalSpacing(dp(14))
-        grid.setVerticalSpacing(dp(14))
+        val columnWidth = (resources.configuration.screenWidthDp - side * 2 -
+            (COLUMNS - 1) * GRID_GAP) / COLUMNS
+        val itemHeight = (columnWidth * AppTileView.BASE_HEIGHT /
+            AppTileView.BASE_WIDTH.toFloat()).toInt()
+
+        grid.setNumColumns(COLUMNS)
+        grid.setHorizontalSpacing(dp(GRID_GAP))
+        grid.setVerticalSpacing(dp(GRID_GAP))
 
         adapter = ArrayObjectAdapter(
             AppTilePresenter(
                 compact = true,
+                baseWidthDp = columnWidth,
+                itemHeightDp = itemHeight,
                 onClick = { AppLauncher.launch(this, it) },
                 onLongClick = { AppMenu.show(this, it) { AppLauncher.launch(this, it) } },
                 onFocusChanged = { tile, _, focused ->
@@ -72,6 +82,14 @@ class AllAppsActivity : FragmentActivity() {
         }
     }
 
+    private fun sidePadding(): Int =
+        if (resources.configuration.screenWidthDp < 1200) 44 else 62
+
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density + 0.5f).toInt()
+
+    private companion object {
+        const val COLUMNS = 6
+        const val GRID_GAP = 14
+    }
 }

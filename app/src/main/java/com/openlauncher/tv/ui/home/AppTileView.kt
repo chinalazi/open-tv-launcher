@@ -7,7 +7,6 @@ import android.graphics.drawable.GradientDrawable
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.Gravity
-import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -17,6 +16,7 @@ import com.openlauncher.tv.data.local.AppItemEntity
 
 /**
  * 大圆角品牌色磁贴。首页与「全部应用」共用，聚焦时白描边 + 上浮放大。
+ * 尺寸按传入的基准宽度等比缩放，保证 960dp（1080p@2x）与 1280dp 的电视上观感一致。
  */
 class AppTileView @JvmOverloads constructor(
     context: Context,
@@ -24,8 +24,10 @@ class AppTileView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
+    private val rowView = LinearLayout(context)
     private val iconView = ImageView(context)
     private val labelView = TextView(context)
+
     private var bgNormal: GradientDrawable? = null
     private var bgFocused: GradientDrawable? = null
     private var radiusDp = 24
@@ -42,18 +44,13 @@ class AppTileView @JvmOverloads constructor(
         clipChildren = false
         clipToPadding = false
 
-        val row = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
-            gravity = Gravity.CENTER
-            clipChildren = false
-            clipToPadding = false
-            setPadding(dp(12), 0, dp(12), 0)
-        }
+        rowView.orientation = LinearLayout.HORIZONTAL
+        rowView.gravity = Gravity.CENTER
+        rowView.clipChildren = false
+        rowView.clipToPadding = false
+
         iconView.scaleType = ImageView.ScaleType.FIT_CENTER
-        row.addView(
-            iconView,
-            LinearLayout.LayoutParams(dp(32), dp(32)).apply { rightMargin = dp(9) }
-        )
+        rowView.addView(iconView, LinearLayout.LayoutParams(0, 0))
         labelView.apply {
             textSize = 15f
             setTextColor(Color.WHITE)
@@ -61,8 +58,12 @@ class AppTileView @JvmOverloads constructor(
             ellipsize = TextUtils.TruncateAt.END
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         }
-        row.addView(labelView, LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
-        addView(row, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+        rowView.addView(
+            labelView,
+            LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        )
+
+        addView(rowView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
 
         setOnFocusChangeListener { _, focused ->
             applyFocus(focused)
@@ -70,20 +71,39 @@ class AppTileView @JvmOverloads constructor(
         }
     }
 
-    fun bindApp(item: AppItemEntity, compact: Boolean = false) {
-        radiusDp = if (compact) 20 else 24
+    fun bindApp(item: AppItemEntity, compact: Boolean = false, baseWidthDp: Int = BASE_WIDTH) {
+        applyMetrics(baseWidthDp, compact)
         labelView.text = item.label
         iconView.setImageDrawable(AppIconCache.get(context, item.packageName))
         brandColor = AppPalette.colorOf(context, item.packageName)
         buildBackgrounds(isMore = false)
     }
 
-    fun bindMore(compact: Boolean = false) {
-        radiusDp = if (compact) 20 else 24
+    fun bindMore(compact: Boolean = false, baseWidthDp: Int = BASE_WIDTH) {
+        applyMetrics(baseWidthDp, compact)
         labelView.text = "更多"
         iconView.setImageResource(R.drawable.ic_more_dots)
         brandColor = MORE_COLOR
         buildBackgrounds(isMore = true)
+    }
+
+    /** 按基准宽度等比缩放图标、字号、内边距与圆角。 */
+    private fun applyMetrics(baseWidthDp: Int, compact: Boolean) {
+        val scale = (baseWidthDp.toFloat() / BASE_WIDTH).coerceIn(0.6f, 1.1f)
+        val iconSize = (32 * scale).toInt().coerceAtLeast(20)
+        val iconGap = (9 * scale).toInt().coerceAtLeast(6)
+        val padding = (12 * scale).toInt().coerceAtLeast(8)
+        radiusDp = ((if (compact) 20 else 24) * scale).toInt().coerceAtLeast(12)
+
+        rowView.setPadding(dp(padding), 0, dp(padding), 0)
+        val lp = iconView.layoutParams as? LinearLayout.LayoutParams
+            ?: LinearLayout.LayoutParams(dp(iconSize), dp(iconSize))
+        lp.width = dp(iconSize)
+        lp.height = dp(iconSize)
+        lp.rightMargin = dp(iconGap)
+        iconView.layoutParams = lp
+
+        labelView.textSize = (15f * scale).coerceIn(11f, 15f)
     }
 
     private fun buildBackgrounds(isMore: Boolean) {
@@ -135,7 +155,9 @@ class AppTileView @JvmOverloads constructor(
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density + 0.5f).toInt()
 
-    private companion object {
+    companion object {
+        const val BASE_WIDTH = 176
+        const val BASE_HEIGHT = 114
         val NEUTRAL = 0xFF3F4756.toInt()
         val MORE_COLOR = 0xFF4A5470.toInt()
     }

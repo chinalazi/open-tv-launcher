@@ -8,6 +8,8 @@ import com.openlauncher.tv.data.local.AppItemEntity
 /** 全部应用网格用的 Leanback Presenter。 */
 class AppTilePresenter(
     private val compact: Boolean = true,
+    private val baseWidthDp: Int = AppTileView.BASE_WIDTH,
+    private val itemHeightDp: Int = if (compact) 104 else 114,
     private val onClick: (AppItemEntity) -> Unit,
     private val onLongClick: (AppItemEntity) -> Unit,
     private val onFocusChanged: (AppTileView, AppItemEntity, Boolean) -> Unit = { _, _, _ -> }
@@ -20,10 +22,10 @@ class AppTilePresenter(
         val tile = viewHolder.view as AppTileView
         val appItem = item as? AppItemEntity ?: return
 
-        tile.bindApp(appItem, compact)
+        tile.bindApp(appItem, compact, baseWidthDp)
         tile.layoutParams = RecyclerView.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(tile, if (compact) 104 else 114)
+            dp(tile, itemHeightDp)
         )
         tile.onTileFocus = { view, focused -> onFocusChanged(view, appItem, focused) }
         tile.setOnClickListener { onClick(appItem) }
