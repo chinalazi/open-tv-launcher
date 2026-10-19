@@ -18,6 +18,7 @@ import com.openlauncher.tv.data.local.AppItemEntity
 import com.openlauncher.tv.data.local.CategoryEntity
 import com.openlauncher.tv.ui.parental.ParentalSettingsActivity
 import com.openlauncher.tv.ui.settings.SettingsActivity
+import com.openlauncher.tv.ui.settings.SystemSettingsLauncher
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -132,10 +133,8 @@ class HomeFragment : RowsSupportFragment() {
     private fun handleActionItem(item: ActionItem) {
         when (item.id) {
             1 -> {
-                try {
-                    startActivity(Intent(android.provider.Settings.ACTION_SETTINGS))
-                } catch (e: Exception) {
-                    toast("该系统不支持直接打开设置")
+                if (!SystemSettingsLauncher.open(requireContext(), SystemSettingsLauncher.Target.ROOT)) {
+                    toast("这台电视没有提供系统设置入口")
                 }
             }
 

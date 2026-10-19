@@ -13,19 +13,33 @@ android {
         // 小米电视 4A 等国产机型常停留在 Android 6.0（API 23）
         minSdk = 23
         targetSdk = 34
-        versionCode = 6
-        versionName = "1.2.1"
+        versionCode = 7
+        versionName = "1.2.2"
+    }
+
+    signingConfigs {
+        // 固定签名（仓库内 keystore/opentv.p12）。之前用 CI 自动生成的 debug 签名，
+        // 每次构建密钥都不同，导致新旧版本无法覆盖安装。
+        create("shared") {
+            storeFile = rootProject.file("keystore/opentv.p12")
+            storePassword = "opentv2026"
+            keyAlias = "opentv"
+            keyPassword = "opentv2026"
+            storeType = "PKCS12"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // 自用构建：沿用 debug 签名，方便 CI 直出可安装 APK
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("shared")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("shared")
         }
     }
 

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.util.Log
 import com.openlauncher.tv.app.LauncherApplication
 import com.openlauncher.tv.service.TimeTrackingService
+import kotlinx.coroutines.launch
 
 /**
  * 仅存在于 debug 构建的联调入口：
@@ -25,6 +26,11 @@ class DebugCommandReceiver : BroadcastReceiver() {
                 app.parental.setSingleLimitMinutes(0)
                 app.parental.setKidsMode(true)
                 TimeTrackingService.startService(context)
+            }
+
+            // 直接把家长 PIN 设为 1234，省去在电视上点九宫格
+            "pin" -> {
+                app.applicationScope.launch { app.parental.setPin("1234") }
             }
 
             "reset" -> {
