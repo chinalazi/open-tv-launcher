@@ -18,8 +18,4 @@ object AppIconCache {
         cache.put(packageName, drawable)
         return drawable
     }
-
-    fun clear() {
-        cache.evictAll()
-    }
 }

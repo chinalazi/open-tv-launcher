@@ -20,7 +20,7 @@ class AppRepository(
         val categories = launcherDao.getAllCategories()
         categories.minByOrNull { it.sortOrder }?.id
             ?: launcherDao.insertCategory(
-                CategoryEntity(name = "常用应用", sortOrder = 0, isSystemDefault = true)
+                CategoryEntity(name = "常用应用", sortOrder = 0)
             )
     }
 

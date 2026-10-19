@@ -77,6 +77,12 @@ python deploy/deploy.py --host 192.168.1.50 --restore-stock com.mitv.tvhome
 
 > 电视需开启「开发者选项 → USB 调试」，并与电脑处于同一 Wi-Fi。首次连接时电视上会弹「允许 USB 调试」，记得允许。
 
+### 升级说明
+
+- 从 1.0.x / 1.1.1 升级到 1.1.2 时，本地数据库结构有调整（删掉了两个从未使用的字段），
+  升级会**重建分类表**：分类回到默认的「常用应用」，隐藏/白名单标记需要重新设置一次，
+  已安装应用会在下次启动时自动重新扫描。
+
 ### 兼容性
 
 - 支持 **Android 6.0（API 23）及以上**，小米电视 4A 等停留在 Android 6.0 的国产机型可直接安装。
@@ -112,6 +118,7 @@ app/src/main/
 └── res/
 deploy/deploy.py                      # 纯 Python ADB 部署脚本
 tools/verify_static.py                # 无 SDK 环境下的静态自检
+docs/                                 # 需求 / 审查 / 对比等设计文档
 ```
 
 ## 自检

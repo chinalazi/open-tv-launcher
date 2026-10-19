@@ -9,3 +9,7 @@
 .cxx
 *.apk
 *.aab
+
+# 部署脚本生成的 adb 私钥（绝不入库）
+deploy/.adbkey/
+*.log

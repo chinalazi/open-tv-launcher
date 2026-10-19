@@ -13,8 +13,8 @@ android {
         // 小米电视 4A 等国产机型常停留在 Android 6.0（API 23）
         minSdk = 23
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.1.1"
+        versionCode = 4
+        versionName = "1.1.2"
     }
 
     buildTypes {
@@ -56,7 +56,6 @@ dependencies {
     implementation("androidx.leanback:leanback:1.0.0")
 
     // Lifecycle & Coroutines
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 

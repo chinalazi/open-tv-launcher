@@ -7,7 +7,6 @@ import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import com.openlauncher.tv.R
 import com.openlauncher.tv.app.LauncherApplication
 import com.openlauncher.tv.data.parental.ParentalRepository
 import com.openlauncher.tv.data.parental.ParentalState

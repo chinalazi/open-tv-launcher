@@ -71,10 +71,6 @@ class PinPad @JvmOverloads constructor(
         renderDisplay()
     }
 
-    fun setTitle(text: CharSequence) {
-        titleView.text = text
-    }
-
     fun setOnPinComplete(listener: (String) -> Unit) {
         onComplete = listener
     }

@@ -1,3 +1,5 @@
+> **历史文档**：本文件记录的是 v1.1.0 之前的对比报告，其中列出的问题已在 v1.1.0~1.1.2 修复（见 develop.md），保留作为决策依据。
+
 # 与 tv-vibehack 的对比与改进建议
 
 对比对象：`chinalazi/tv-vibehack`（fork 自 `Gathin23/tv-vibehack`，MIT，单 Activity + RecyclerView + RecyclerView 动画，Java）

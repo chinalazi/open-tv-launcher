@@ -1,3 +1,5 @@
+> **历史文档**：本文件记录的是 v1.1.0 之前的代码审查报告，其中列出的问题已在 v1.1.0~1.1.2 修复（见 develop.md），保留作为决策依据。
+
 # OpenTV Launcher 代码审查报告
 
 对照《编制需求.md》逐条核对，审查范围：`app/src/main/**`、`app/build.gradle.kts`、根 Gradle 配置、`.github/workflows/build-apk.yml`。

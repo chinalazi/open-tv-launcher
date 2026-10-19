@@ -18,12 +18,6 @@ interface LauncherDao {
     @Query("SELECT * FROM categories ORDER BY sortOrder ASC")
     suspend fun getAllCategories(): List<CategoryEntity>
 
-    @Query("SELECT * FROM categories WHERE id = :id LIMIT 1")
-    suspend fun getCategory(id: Long): CategoryEntity?
-
-    @Query("SELECT COUNT(*) FROM categories")
-    suspend fun getCategoryCount(): Int
-
     @Query("SELECT COALESCE(MAX(sortOrder), -1) FROM categories")
     suspend fun maxSortOrder(): Int
 
@@ -46,23 +40,11 @@ interface LauncherDao {
     @Query("SELECT * FROM app_items WHERE isHidden = 0 ORDER BY sortWeight ASC, label ASC")
     fun getAllVisibleAppsFlow(): Flow<List<AppItemEntity>>
 
-    @Query("SELECT * FROM app_items WHERE categoryId = :categoryId AND isHidden = 0 ORDER BY sortWeight ASC, label ASC")
-    fun getAppsByCategoryIdFlow(categoryId: Long): Flow<List<AppItemEntity>>
-
     @Query("SELECT * FROM app_items WHERE isHidden = 1 ORDER BY label ASC")
     fun getHiddenAppsFlow(): Flow<List<AppItemEntity>>
 
-    @Query("SELECT * FROM app_items WHERE packageName = :packageName AND activityName = :activityName LIMIT 1")
-    suspend fun findApp(packageName: String, activityName: String): AppItemEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrUpdateApp(app: AppItemEntity): Long
-
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAppsIfNotExist(apps: List<AppItemEntity>)
-
-    @Update
-    suspend fun updateApp(app: AppItemEntity)
 
     @Query("UPDATE app_items SET label = :label WHERE id = :id")
     suspend fun updateLabel(id: Long, label: String)
@@ -78,9 +60,6 @@ interface LauncherDao {
 
     @Query("DELETE FROM app_items WHERE packageName = :packageName AND activityName = :activityName")
     suspend fun deleteAppComponent(packageName: String, activityName: String)
-
-    @Query("SELECT * FROM app_items WHERE isWhitelistForKids = 1")
-    suspend fun getKidWhitelistApps(): List<AppItemEntity>
 
     @Query("SELECT packageName FROM app_items WHERE isWhitelistForKids = 1")
     suspend fun getKidWhitelistPackages(): List<String>

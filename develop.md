@@ -45,6 +45,15 @@
 - 新增 `tools/verify_static.py`（无 SDK 环境下的静态自检）
 - 删除 `ui/lock/ScreenLockActivity`（改为桌面内遮罩）
 
+## 版本 1.1.2（代码清理）
+
+- 删除 7 个从未调用的 DAO 方法（`getCategory` / `getCategoryCount` / `getAppsByCategoryIdFlow` / `findApp` / `insertOrUpdateApp` / `updateApp` / `getKidWhitelistApps`）。
+- `CategoryEntity` 删除两个从未被读取的字段（`isChildVisible` / `isSystemDefault`），数据库版本 1 → 2，采用 `fallbackToDestructiveMigration()`（分类会被重建）。
+- 删除未使用的 `PinPad.setTitle()`、`AppIconCache.clear()`。
+- 移除未使用的依赖 `lifecycle-viewmodel-ktx`（本工程无 ViewModel）。
+- 布局里删除 3 个没有代码引用的 id（`main_frame` / `tv_title` / `tv_lock_title`）。
+- 设计文档（需求 / 审查 / 对比）收进 `docs/`；`.gitignore` 增加 `deploy/.adbkey/`（adb 私钥）与 `*.log`。
+
 ## 版本 1.1.1
 
 - `minSdk` 24 → 23：小米电视 4A（Android 6.0 / API 23）此前报 `INSTALL_FAILED_OLDER_SDK` 装不上。
