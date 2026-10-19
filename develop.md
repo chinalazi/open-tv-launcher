@@ -45,6 +45,21 @@
 - 新增 `tools/verify_static.py`（无 SDK 环境下的静态自检）
 - 删除 `ui/lock/ScreenLockActivity`（改为桌面内遮罩）
 
+## 版本 1.2.x / 1.3.0（真机联调，小米电视 4A / Android 6.0）
+
+- **锁屏**：从 Activity 内遮罩改为独立 `LockScreenActivity`，由计时服务在进入锁定态时拉起，
+  可直接覆盖正在播放的视频（SmartTube 实测）；桌面 `onResume` 兜底，按 HOME 回来会再次弹出。
+  `LockScreenLauncher` 带 800ms 节流，避免重复 startActivity。
+- **PIN 性能**：`verifyPin` 的 PBKDF2 之前在**主线程**执行，实测 6990ms（logcat），输完最后一位整屏卡死。
+  改为 `Dispatchers.Default` + 迭代 120000 → 10000，实测 580ms；老 PIN 校验成功后自动迁移参数。
+- **系统设置**：`SystemSettingsLauncher` 按「小米自定义 action → 标准 action → 显式组件」顺序兜底。
+  小米电视没有实现 `android.settings.SETTINGS`（ActivityNotFound），需要 `com.xiaomi.mitv.settings.SETTINGS`。
+  Wi-Fi / 蓝牙 / 图像声音 子页面均可正常拉起；设置主页是弹窗型 Activity，第三方拉起会被系统收回，
+  因此桌面「系统设置」改为进入应用内设置页。
+- **签名**：仓库内固定 `keystore/opentv.p12`（release 与 debug 同签名），修复了之前每次 CI 生成新 debug key
+  导致旧版本无法覆盖安装的问题。
+- **调试支持**：debug 包内置 `com.openlauncher.tv.DEBUG` 广播（lock / reset / pin / sysset），并随 Release 发布。
+
 ## 版本 1.1.2（代码清理）
 
 - 删除 7 个从未调用的 DAO 方法（`getCategory` / `getCategoryCount` / `getAppsByCategoryIdFlow` / `findApp` / `insertOrUpdateApp` / `updateApp` / `getKidWhitelistApps`）。
