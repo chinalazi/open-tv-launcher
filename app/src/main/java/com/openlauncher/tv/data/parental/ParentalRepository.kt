@@ -208,6 +208,10 @@ class ParentalRepository(
         Log.d(TAG, "verifyPin cost=${SystemClock.elapsedRealtime() - startedAt}ms iterations=$iterations")
 
         if (ok) {
+            // 老版本用 12 万次迭代，在这类电视 CPU 上要 7 秒；校验成功后静默换成新参数
+            if (iterations != PIN_ITERATIONS) {
+                runCatching { setPin(pin) }
+            }
             mutate({ s -> s.copy(failedAttempts = 0, lockoutUntilMs = 0) }, true)
             return PinResult.Ok
         }
@@ -328,7 +332,7 @@ class ParentalRepository(
         const val MAX_ATTEMPTS = 5
         private const val LOCKOUT_DURATION_MS = 5 * 60 * 1000L
         private const val PERSIST_INTERVAL_MS = 5_000L
-        private const val PIN_ITERATIONS = 120_000
+        private const val PIN_ITERATIONS = 10_000
         private const val ALGO_SHA256 = "PBKDF2WithHmacSHA256"
         private const val ALGO_SHA1 = "PBKDF2WithHmacSHA1"
 
