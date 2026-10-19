@@ -1,6 +1,5 @@
 package com.openlauncher.tv.ui.settings
 
-import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -31,9 +30,7 @@ object SystemSettingsLauncher {
      * 部分定制 ROM（小米电视）对显式组件会返回 null，但实际可以启动。
      */
     private fun tryStart(context: Context, intent: Intent): Boolean {
-        // 从 Activity 拉起时不加 NEW_TASK：小米电视的系统设置是个"弹窗型"Activity，
-        // 用新任务启动会被立刻 pause 掉（日志里的 Activity pause timeout）；并入当前任务才能正常显示。
-        if (context !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val label = intent.component?.flattenToShortString() ?: intent.action
         return try {
             context.startActivity(intent)
@@ -51,6 +48,8 @@ object SystemSettingsLauncher {
 
     private fun candidates(target: Target): List<Intent> = when (target) {
         Target.ROOT -> listOf(
+            // 小米电视没实现 android.settings.SETTINGS，但有自定义 action，优先用它
+            action("com.xiaomi.mitv.settings.SETTINGS"),
             action(Settings.ACTION_SETTINGS),
             component(MI, "$MI.entry.MainActivity"),
             component("com.android.settings", "com.android.settings.Settings"),
@@ -58,21 +57,25 @@ object SystemSettingsLauncher {
         )
 
         Target.WIFI -> listOf(
+            action("com.xiaomi.mitv.settings.WIFI_SETTINGS"),
             action(Settings.ACTION_WIFI_SETTINGS),
             component(MI, "$MI.wifi.MitvWifiActivity")
         )
 
         Target.BLUETOOTH -> listOf(
+            action("com.xiaomi.mibox.settings.BLUETOOTH_ENTRY"),
             action(Settings.ACTION_BLUETOOTH_SETTINGS),
             component(MI, "$MI.bluetooth.MitvBluetoothActivity")
         )
 
         Target.DISPLAY -> listOf(
+            action("com.xiaomi.mitv.settings.DISPLAYSOUND_SETTINGS"),
             action(Settings.ACTION_DISPLAY_SETTINGS),
             component(MI, "$MI.entry.DisplaySoundActivity")
         )
 
         Target.SOUND -> listOf(
+            action("com.xiaomi.mitv.settings.DISPLAYSOUND_SETTINGS"),
             action(Settings.ACTION_SOUND_SETTINGS),
             component(MI, "$MI.entry.DisplaySoundActivity")
         )
