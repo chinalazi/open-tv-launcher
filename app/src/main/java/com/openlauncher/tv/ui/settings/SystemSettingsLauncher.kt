@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
 
 /**
  * 各家电视对标准 Settings Action 的支持差异很大：
@@ -14,6 +15,7 @@ object SystemSettingsLauncher {
 
     enum class Target { ROOT, WIFI, BLUETOOTH, DISPLAY, SOUND, APPS, HOME }
 
+    private const val TAG = "SystemSettings"
     private const val MI = "com.xiaomi.mitv.settings"
 
     fun open(context: Context, target: Target): Boolean {
@@ -23,13 +25,21 @@ object SystemSettingsLauncher {
         return false
     }
 
+    /**
+     * 直接尝试启动并捕获异常。不用 resolveActivity 预判：
+     * 部分定制 ROM（小米电视）对显式组件会返回 null，但实际可以启动。
+     */
     private fun tryStart(context: Context, intent: Intent): Boolean {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        val resolvable = runCatching {
-            context.packageManager.resolveActivity(intent, 0) != null
-        }.getOrDefault(false)
-        if (!resolvable) return false
-        return runCatching { context.startActivity(intent) }.isSuccess
+        val label = intent.component?.flattenToShortString() ?: intent.action
+        return try {
+            context.startActivity(intent)
+            Log.d(TAG, "started $label")
+            true
+        } catch (e: Throwable) {
+            Log.w(TAG, "failed $label: ${e.javaClass.simpleName} ${e.message}")
+            false
+        }
     }
 
     private fun action(name: String) = Intent(name)
