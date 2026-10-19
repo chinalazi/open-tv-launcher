@@ -18,7 +18,6 @@ import com.openlauncher.tv.data.local.AppItemEntity
 import com.openlauncher.tv.data.local.CategoryEntity
 import com.openlauncher.tv.ui.parental.ParentalSettingsActivity
 import com.openlauncher.tv.ui.settings.SettingsActivity
-import com.openlauncher.tv.ui.settings.SystemSettingsLauncher
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
