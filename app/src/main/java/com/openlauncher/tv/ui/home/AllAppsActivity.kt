@@ -62,11 +62,11 @@ class AllAppsActivity : FragmentActivity() {
                 apps.forEach { adapter.add(it) }
                 countView.text = "共 ${apps.size} 个应用"
                 if (apps.isNotEmpty()) {
-                    grid.post {
+                    grid.postDelayed({
                         if (currentFocus == null || currentFocus === grid) {
                             grid.getChildAt(0)?.requestFocus()
                         }
-                    }
+                    }, 80L)
                 }
             }
         }

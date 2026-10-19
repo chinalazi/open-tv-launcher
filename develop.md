@@ -45,6 +45,20 @@
 - 新增 `tools/verify_static.py`（无 SDK 环境下的静态自检）
 - 删除 `ui/lock/ScreenLockActivity`（改为桌面内遮罩）
 
+## 版本 1.4.x（全新桌面视觉）
+
+- 首页从 Leanback 多行改为单栏居中布局：`activity_main` 用顶栏 + 居中 stage，
+  卡片为自绘 `AppTileView`（品牌色渐变 + 白描边聚焦），不再依赖 `RowsSupportFragment`。
+- 新增 `AmbientBackdropView`：两个径向渐变绘制氛围光（跟随聚焦应用主色，420ms 过渡），
+  以及 `bg_vignette`（中心透明、边缘压暗）。不用 RenderEffect（API 31+），API 23 可用。
+- 新增 `AppPalette`：把图标画到 16×16 位图，按饱和度加权取主色，`LruCache` 缓存；灰白图标走中性色。
+- 新增 `AllAppsActivity`（6 列 `VerticalGridView`）+ `AppTilePresenter` + `AppMenu`（自绘玻璃菜单）。
+- 锁屏改为玻璃卡片：`PinPad` 换成圆点 + 玻璃键位（`setInputEnabled` 防止成功后重复提交），
+  主按钮用 `bg_btn_primary_selector`（白色填充 + 白色外圈表示焦点）。
+- 设置页：左侧导航 + 右侧 `item_settings_row` 信息卡（图标 / 标题 / 副标题 / 右侧状态值 / 箭头）。
+- 移除 `HomeFragment`、`AppCardPresenter`、`ActionItemPresenter`、`card_foreground`、`bg_panel`。
+- 修复编译问题：`VerticalGridView.adapter` 需要显式转成 `RecyclerView.Adapter`（Java 裸类型）。
+
 ## 版本 1.2.x / 1.3.0（真机联调，小米电视 4A / Android 6.0）
 
 - **锁屏**：从 Activity 内遮罩改为独立 `LockScreenActivity`，由计时服务在进入锁定态时拉起，

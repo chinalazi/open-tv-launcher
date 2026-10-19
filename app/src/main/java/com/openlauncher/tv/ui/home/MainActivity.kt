@@ -151,6 +151,8 @@ class MainActivity : FragmentActivity() {
             if (first != null) {
                 ambient.setGlowColor(AppPalette.colorOf(this, first.packageName), false)
             }
+            // 首次加载完成时焦点还在胶囊上，把焦点交给第一张卡片
+            if (currentFocus == null) rowApps.getChildAt(0)?.requestFocus()
         }
     }
 

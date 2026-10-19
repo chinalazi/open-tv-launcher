@@ -47,7 +47,7 @@ class SettingsActivity : FragmentActivity() {
         buildPanel()
         observeParentalState()
 
-        nav.getChildAt(0)?.requestFocus()
+        nav.post { nav.getChildAt(0)?.requestFocus() }
     }
 
     // ---- 左侧导航 ---------------------------------------------------------------
