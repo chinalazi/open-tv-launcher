@@ -1,6 +1,6 @@
 package com.openlauncher.tv.ui.settings
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.Gravity
@@ -37,6 +37,7 @@ class CategoryManagerActivity : AppCompatActivity() {
         binding.btnAddStudy.setOnClickListener { addCategory("学习工具") }
 
         observeData()
+        binding.btnAddCommon.post { binding.btnAddCommon.requestFocus() }
     }
 
     private fun observeData() {
@@ -121,7 +122,7 @@ class CategoryManagerActivity : AppCompatActivity() {
 
     private fun showRenameDialog(category: CategoryEntity) {
         val presets = arrayOf("常用应用", "影音播放", "电视游戏", "系统工具", "儿童专区", "学习工具")
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.DialogDark)
             .setTitle("重命名「${category.name}」")
             .setItems(presets) { _, which ->
                 lifecycleScope.launch {
@@ -134,7 +135,7 @@ class CategoryManagerActivity : AppCompatActivity() {
     }
 
     private fun confirmDelete(category: CategoryEntity) {
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.DialogDark)
             .setTitle("删除分类「${category.name}」？")
             .setMessage("该分类下的应用会移动到第一个分类，不会被卸载。")
             .setPositiveButton("删除") { _, _ ->

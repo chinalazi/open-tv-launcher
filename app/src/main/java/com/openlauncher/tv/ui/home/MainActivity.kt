@@ -1,6 +1,6 @@
 package com.openlauncher.tv.ui.home
 
-import android.app.AlertDialog
+import androidx.appcompat.app.AlertDialog
 import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
@@ -136,11 +136,14 @@ class MainActivity : AppCompatActivity() {
     private fun onTileFocused(item: TileItem) {
         focusedKey = keyOf(item)
         when (item) {
-            is TileItem.App -> showHero(
-                item.entity.label,
-                categories.firstOrNull { it.id == item.entity.categoryId }?.name.orEmpty(),
-                AppPalette.colorOf(this, item.entity.packageName)
-            )
+            is TileItem.App -> {
+                val count = apps.count { it.categoryId == item.entity.categoryId }
+                showHero(
+                    item.entity.label,
+                    "$count 个应用",
+                    AppPalette.colorOf(this, item.entity.packageName)
+                )
+            }
 
             is TileItem.Action -> showHero(item.title, "电视与启动器设置", item.color)
         }
@@ -220,7 +223,7 @@ class MainActivity : AppCompatActivity() {
     private fun onTileLongClicked(item: TileItem) {
         if (item !is TileItem.App) return
         val entity = item.entity
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.DialogDark)
             .setTitle(entity.label)
             .setItems(arrayOf("移动到其他分类", "在桌面隐藏")) { _, which ->
                 when (which) {
@@ -238,7 +241,7 @@ class MainActivity : AppCompatActivity() {
             toast("还没有其他分类，可到「设置 → 分类与应用管理」新建")
             return
         }
-        AlertDialog.Builder(this)
+        AlertDialog.Builder(this, R.style.DialogDark)
             .setTitle("移动到")
             .setItems(targets.map { it.name }.toTypedArray()) { _, which ->
                 val target = targets[which]

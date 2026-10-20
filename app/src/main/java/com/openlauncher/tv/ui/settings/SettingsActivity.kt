@@ -23,6 +23,9 @@ class SettingsActivity : AppCompatActivity() {
             append("\nAndroid ${Build.VERSION.RELEASE} · 完全离线运行，无网络权限")
             append("\n开源协议：MIT / Apache-2.0（AndroidX）")
         }
+
+        // 遥控器进来就能直接按方向键，不用先"点亮"某个按钮
+        binding.btnSystemSettings.post { binding.btnSystemSettings.requestFocus() }
     }
 
     private fun setupClickListeners() {

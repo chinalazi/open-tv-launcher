@@ -5,6 +5,14 @@
 
 ---
 
+## 界面
+
+小米电视 4A（Android 6.0.1 / 1080p）实机截图：
+
+![桌面](design/shots/final-home.jpg)
+
+![设置](design/shots/final-settings.jpg)
+
 ## 核心特性
 
 **桌面（Apple TV 风格）**

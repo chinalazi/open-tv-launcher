@@ -73,13 +73,16 @@ class ShelfRowView(
 
     /** 让第 position 块磁贴拿到焦点（布局还没完成时自动重试）。 */
     fun focusAt(position: Int, attempt: Int = 0) {
-        val manager = recycler.layoutManager ?: return
+        val manager = recycler.layoutManager as? LinearLayoutManager ?: return
         val target = manager.findViewByPosition(position)
-        if (target != null) {
-            target.requestFocus()
-        } else if (attempt < 4) {
-            recycler.post { focusAt(position, attempt + 1) }
+        if (target == null) {
+            if (attempt == 0) manager.scrollToPositionWithOffset(position, 0)
+            if (attempt < 6) recycler.post { focusAt(position, attempt + 1) }
+            return
         }
+        target.requestFocus()
+        // 把焦点磁贴对齐到货架左端，避免重建后露出上一条的半截磁贴
+        manager.scrollToPositionWithOffset(position, 0)
     }
 
     private fun dp(value: Int): Int =

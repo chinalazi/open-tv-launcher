@@ -110,14 +110,15 @@ class AppTileView @JvmOverloads constructor(
             cornerRadius = radius
             setStroke(dp(2), 0xF2FFFFFF.toInt())
         }
-        background = if (isFocused) focusBg else normalBg
+        background = null
+        iconBox.background = if (isFocused) focusBg else normalBg
     }
 
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
         super.onFocusChanged(gainFocus, direction, previouslyFocusedRect)
-        background = when {
-            gainFocus -> focusBg ?: background
-            else -> normalBg ?: background
+        iconBox.background = when {
+            gainFocus -> focusBg ?: iconBox.background
+            else -> normalBg ?: iconBox.background
         }
         labelView.setTextColor(if (gainFocus) LABEL_FOCUSED else LABEL_NORMAL)
 
