@@ -13,8 +13,8 @@ android {
         // 小米电视 4A 等国产机型常停留在 Android 6.0（API 23）
         minSdk = 23
         targetSdk = 34
-        versionCode = 14
-        versionName = "1.3.1"
+        versionCode = 20
+        versionName = "1.5.0"
     }
 
     signingConfigs {
@@ -64,10 +64,10 @@ android {
 }
 
 dependencies {
-    // AndroidX & TV Leanback（已移除 material / constraintlayout：本工程未使用）
+    // AndroidX 基础库（已移除 leanback：桌面改为自绘货架，减少一层框架开销）
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("androidx.leanback:leanback:1.0.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
 
     // Lifecycle & Coroutines
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -78,7 +78,4 @@ dependencies {
     implementation("androidx.room:room-runtime:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
     ksp("androidx.room:room-compiler:$roomVersion")
-
-    // DataStore Preferences
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
 }

@@ -12,16 +12,9 @@
 
     <!-- 本启动器不声明 INTERNET 权限：完全离线 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
-    <!-- 用于识别"当前前台是否白名单应用"；需用户在系统设置里手动授予使用情况访问权限 -->
-    <uses-permission
-        android:name="android.permission.PACKAGE_USAGE_STATS"
-        tools:ignore="ProtectedPermissions" />
 
     <application
         android:name=".app.LauncherApplication"
@@ -66,32 +59,6 @@
             android:exported="false"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.OpenTVLauncher.Settings" />
-
-        <activity
-            android:name=".ui.parental.ParentalSettingsActivity"
-            android:exported="false"
-            android:screenOrientation="landscape"
-            android:theme="@style/Theme.OpenTVLauncher.Settings" />
-
-        <!-- 超时锁屏（独立 Activity，可覆盖在视频之上） -->
-        <activity
-            android:name=".ui.lock.LockScreenActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:launchMode="singleTop"
-            android:screenOrientation="landscape"
-            android:theme="@style/Theme.OpenTVLauncher.LockScreen" />
-
-        <!-- 防沉迷计时服务 -->
-        <service
-            android:name=".service.TimeTrackingService"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="specialUse">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="ParentalScreenTimeTracking" />
-        </service>
 
         <!-- 应用安装 / 卸载 / 开机广播 -->
         <receiver

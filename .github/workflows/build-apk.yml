@@ -107,7 +107,7 @@ jobs:
         body: |
           ## OpenTV Launcher v${{ steps.ver.outputs.name }} (build ${{ steps.ver.outputs.code }})
 
-          纯离线 Android TV 启动器，内置儿童防沉迷时长管理与 PIN 锁屏。
+          纯离线 Android TV 启动器，Apple TV 风格桌面（氛围光 / 圆角磁贴 / 聚焦大字）。
 
           **安装**
           ```bash
@@ -118,8 +118,8 @@ jobs:
           ```
 
           **注意**
-          - APK 使用 debug 签名（自用可直接覆盖安装；换正式签名需卸载重装）。
-          - 防沉迷闭环需要把本应用设为**唯一默认桌面**；孩子停留在播放器内时遮罩不会立刻覆盖（需悬浮窗覆盖层，后续版本）。
+          - APK 使用仓库内固定签名（`keystore/opentv.p12`），可直接覆盖安装。
+          - 1.5.0 起已移除儿童防沉迷与 PIN 锁屏，只保留桌面与系统设置入口。
           - 小米电视若软键盘不可用，本版全部操作已改为遥控器可完成。
 
           构建：GitHub Actions run `${{ github.run_number }}` / commit `${{ github.sha }}`

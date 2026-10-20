@@ -4,12 +4,11 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
-import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.app.AppCompatActivity
 import com.openlauncher.tv.BuildConfig
 import com.openlauncher.tv.databinding.ActivitySettingsBinding
-import com.openlauncher.tv.ui.parental.ParentalSettingsActivity
 
-class SettingsActivity : FragmentActivity() {
+class SettingsActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySettingsBinding
 
@@ -35,9 +34,6 @@ class SettingsActivity : FragmentActivity() {
         binding.btnSound.setOnClickListener { openSystem(SystemSettingsLauncher.Target.SOUND) }
         binding.btnHome.setOnClickListener { openSystem(SystemSettingsLauncher.Target.HOME) }
 
-        binding.btnParental.setOnClickListener {
-            startActivity(Intent(this, ParentalSettingsActivity::class.java))
-        }
         binding.btnCategories.setOnClickListener {
             startActivity(Intent(this, CategoryManagerActivity::class.java))
         }

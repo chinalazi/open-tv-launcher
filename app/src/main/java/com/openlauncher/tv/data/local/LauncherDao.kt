@@ -52,15 +52,12 @@ interface LauncherDao {
     @Query("UPDATE app_items SET isHidden = :hidden WHERE id = :id")
     suspend fun setHidden(id: Long, hidden: Boolean)
 
-    @Query("UPDATE app_items SET isWhitelistForKids = :whitelisted WHERE id = :id")
-    suspend fun setKidsWhitelist(id: Long, whitelisted: Boolean)
+    @Query("UPDATE app_items SET categoryId = :categoryId WHERE id = :id")
+    suspend fun setCategory(id: Long, categoryId: Long)
 
     @Query("DELETE FROM app_items WHERE packageName = :packageName")
     suspend fun deleteAppsByPackage(packageName: String)
 
     @Query("DELETE FROM app_items WHERE packageName = :packageName AND activityName = :activityName")
     suspend fun deleteAppComponent(packageName: String, activityName: String)
-
-    @Query("SELECT packageName FROM app_items WHERE isWhitelistForKids = 1")
-    suspend fun getKidWhitelistPackages(): List<String>
 }

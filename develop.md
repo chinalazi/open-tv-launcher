@@ -3,8 +3,37 @@
 ## 技术栈
 
 - Kotlin 1.9.22 + AGP 8.2.2 + Gradle 8.2，compileSdk/targetSdk 34，minSdk 23（Android 6.0，兼容小米电视 4A）
-- AndroidX Leanback（桌面）、Room + KSP（分类/应用数据）、DataStore（家长控制状态）
-- 无网络权限、无网络库；release 沿用 debug 签名，方便 CI 直出可安装包
+- AndroidX AppCompat + RecyclerView（桌面货架自绘）、Room + KSP（分类/应用数据）
+- 无网络权限、无网络库；release 沿用仓库内固定签名（`keystore/opentv.p12`），方便 CI 直出可安装包
+
+## 版本 1.5.0（以 1.3.1 为基线重做）
+
+1.4.x 的桌面在真机上问题较多，因此把 `main` 回退到 1.3.1（`ffc4247`），在其之上重新做两件事：
+
+### 一、桌面改为 Apple TV 风格
+
+| 元素 | 实现 |
+|---|---|
+| 背景 | 纯黑 + `AmbientGlowView` 径向氛围光，颜色随焦点应用图标主色渐变（`ArgbEvaluator`，420ms） |
+| 主色 | `AppPalette` 把图标画到 36×36 位图后按饱和度加权取平均色，HSV 归一到 `s∈[0.45,0.72] v∈[0.52,0.80]`，失败退回稳定色板 |
+| 顶部 | 细体 `TextClock` + 日期；下面是聚焦应用的大字标题（40sp）与分类名，切换时淡入上浮 |
+| 磁贴 | `AppTileView`：圆角品牌色渐变方块 + 图标 + 下方应用名；聚焦放大 1.08、`translationZ` 抬升、白色 2dp 描边 |
+| 货架 | `ShelfRowView` = 标题 + 横向 RecyclerView（RecyclerView 自身不参与焦点，焦点只在磁贴间流动） |
+| 自适应 | 磁贴边长按 `screenWidthDp` 三档：<960dp→84、≥960dp→96、≥1280dp→112，圆角/图标随之等比缩放 |
+| 焦点记忆 | 数据刷新后按 `app:<id>` 找回原来那块磁贴；从应用返回桌面时若焦点丢失则自动复位 |
+| 交互 | 长按磁贴 → 移动到其他分类 / 隐藏；遥控器 MENU 键 → 设置；「设置」磁贴固定在第一行末尾 |
+
+技术选择：去掉 `androidx.leanback`（`RowsSupportFragment` 的默认样式与焦点模型不好改），
+改用 AppCompat + RecyclerView 自绘，APK 更小，样式完全可控。
+
+### 二、移除儿童防沉迷 / PIN 锁屏
+
+删除 `data/parental/ParentalRepository.kt`、`service/TimeTrackingService.kt`、`service/ForegroundApp.kt`、
+`ui/lock/LockScreen*.kt`、`ui/parental/ParentalSettingsActivity.kt`、`ui/common/PinPad.kt`、
+`activity_lock.xml`、`activity_parental_settings.xml`、`pin_key.xml`，以及 Manifest 里的
+`FOREGROUND_SERVICE` / `FOREGROUND_SERVICE_SPECIAL_USE` / `POST_NOTIFICATIONS` / `PACKAGE_USAGE_STATS` 权限。
+`AppItemEntity.isWhitelistForKids` 一并移除，数据库 2 → 3，`MIGRATION_2_3` 重建 `app_items` 表（保留分类与隐藏标记）。
+
 
 ## 版本 1.1.0（本轮重写）
 
@@ -83,5 +112,5 @@
 - 应用卡片手动排序 / 按启动频率排序（`sortWeight` 字段已预留）
 - 一个应用归属多个分类（需要关联表）
 - HDMI / 信号源切换（`TvInputManager`）、Live TV 直达
-- 悬浮窗级锁屏覆盖层（彻底防"最近任务"切走）、设备所有者 kiosk 模式
-- 单元测试（`ParentalState` 的跨天重置、额度计算适合先补）
+- 桌面主题切换（自定义壁纸 / 列数）
+- 单元测试（应用扫描与分类迁移逻辑适合先补）

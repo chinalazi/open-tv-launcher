@@ -22,6 +22,5 @@ data class AppItemEntity(
     val label: String,
     val categoryId: Long,
     val sortWeight: Int = 0,
-    val isHidden: Boolean = false,
-    val isWhitelistForKids: Boolean = false // 是否为儿童模式白名单应用（不限时）
+    val isHidden: Boolean = false
 )

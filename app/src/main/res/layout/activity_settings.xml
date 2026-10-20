@@ -3,7 +3,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_root"
-    android:padding="48dp">
+    android:paddingStart="56dp"
+    android:paddingTop="40dp"
+    android:paddingEnd="56dp"
+    android:paddingBottom="40dp"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,24 +17,24 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="设置菜单"
+            android:fontFamily="sans-serif-medium"
+            android:text="设置"
             android:textColor="@color/text_primary"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:textSize="32sp" />
 
         <!-- 系统原生设置分组 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="26dp"
             android:text="电视系统设置"
             android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            android:textSize="15sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal">
 
             <Button
@@ -78,25 +82,20 @@
 
         </LinearLayout>
 
-        <!-- 软件自身功能设置分组 -->
+        <!-- 启动器自身设置 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:text="启动器偏好与家长控制"
+            android:layout_marginTop="30dp"
+            android:text="启动器"
             android:textColor="@color/text_secondary"
-            android:textSize="16sp" />
+            android:textSize="15sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_parental"
-                style="@style/SettingsButton"
-                android:text="儿童模式与防沉迷" />
 
             <Button
                 android:id="@+id/btn_categories"
@@ -109,10 +108,10 @@
             android:id="@+id/tv_version"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="30dp"
             android:lineSpacingExtra="4dp"
             android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
     </LinearLayout>
 </ScrollView>

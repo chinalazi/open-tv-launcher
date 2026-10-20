@@ -2,7 +2,6 @@ package com.openlauncher.tv.app
 
 import android.app.Application
 import com.openlauncher.tv.data.local.AppDatabase
-import com.openlauncher.tv.data.parental.ParentalRepository
 import com.openlauncher.tv.data.repository.AppRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +13,6 @@ class LauncherApplication : Application() {
     val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     val database by lazy { AppDatabase.getDatabase(this) }
-    val parental by lazy { ParentalRepository(this, applicationScope) }
     val appRepository by lazy { AppRepository(this, database.launcherDao()) }
 
     override fun onCreate() {

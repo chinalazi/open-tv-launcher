@@ -9,7 +9,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.openlauncher.tv.R
 import com.openlauncher.tv.app.LauncherApplication
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-class CategoryManagerActivity : FragmentActivity() {
+class CategoryManagerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCategoryManagerBinding
     private val launcherApp: LauncherApplication get() = application as LauncherApplication
@@ -193,7 +193,7 @@ class CategoryManagerActivity : FragmentActivity() {
             textSize = 16f
             setTextColor(ContextCompat.getColor(this@CategoryManagerActivity, R.color.text_primary))
             backgroundTintList = ColorStateList.valueOf(
-                ContextCompat.getColor(this@CategoryManagerActivity, R.color.pin_key_bg)
+                ContextCompat.getColor(this@CategoryManagerActivity, R.color.surface_strong)
             )
             minWidth = 0
             minimumWidth = 0

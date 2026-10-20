@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import com.openlauncher.tv.app.LauncherApplication
-import com.openlauncher.tv.service.TimeTrackingService
 import kotlinx.coroutines.launch
 
 class PackageChangeReceiver : BroadcastReceiver() {
@@ -34,11 +33,6 @@ class PackageChangeReceiver : BroadcastReceiver() {
             Intent.ACTION_BOOT_COMPLETED -> {
                 app.applicationScope.launch {
                     runCatching { app.appRepository.scanAndSyncInstalledApps() }
-                }
-                // 开机后若儿童模式仍开启，直接恢复计时
-                val state = app.parental.state.value
-                if (state.kidsMode) {
-                    runCatching { TimeTrackingService.startService(context) }
                 }
             }
         }

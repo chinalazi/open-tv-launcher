@@ -1,0 +1,87 @@
+package com.openlauncher.tv.ui.home
+
+import android.content.Context
+import android.graphics.Typeface
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+/**
+ * 一个分类「货架」：标题 + 一行可横向滚动的磁贴。
+ * RecyclerView 本身不参与焦点，焦点只在磁贴之间移动，符合 Apple TV 的手感。
+ */
+class ShelfRowView(
+    context: Context,
+    private val callbacks: TileCallbacks
+) : LinearLayout(context) {
+
+    private val titleView = TextView(context)
+    private val recycler = RecyclerView(context)
+
+    /** 当前这一行装了哪些磁贴，用于数据刷新后把焦点放回原来的应用。 */
+    var items: List<TileItem> = emptyList()
+        private set
+
+    init {
+        orientation = VERTICAL
+        clipChildren = false
+        clipToPadding = false
+
+        titleView.apply {
+            textSize = 15f
+            setTextColor(0xFF8E8E93.toInt())
+            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            letterSpacing = 0.02f
+            setPadding(dp(20), 0, 0, dp(6))
+        }
+        addView(
+            titleView,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        )
+
+        recycler.apply {
+            layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+            isFocusable = false
+            descendantFocusability = FOCUS_AFTER_DESCENDANTS
+            clipChildren = false
+            clipToPadding = false
+            overScrollMode = View.OVER_SCROLL_NEVER
+            setPadding(dp(14), dp(8), dp(14), dp(12))
+            itemAnimator = null
+        }
+        addView(
+            recycler,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+        )
+    }
+
+    fun bind(title: String, tiles: List<TileItem>) {
+        titleView.text = title
+        items = tiles
+        recycler.adapter = TileAdapter(tiles, callbacks)
+    }
+
+    fun focusFirst() = focusAt(0)
+
+    /** 让第 position 块磁贴拿到焦点（布局还没完成时自动重试）。 */
+    fun focusAt(position: Int, attempt: Int = 0) {
+        val manager = recycler.layoutManager ?: return
+        val target = manager.findViewByPosition(position)
+        if (target != null) {
+            target.requestFocus()
+        } else if (attempt < 4) {
+            recycler.post { focusAt(position, attempt + 1) }
+        }
+    }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density + 0.5f).toInt()
+}

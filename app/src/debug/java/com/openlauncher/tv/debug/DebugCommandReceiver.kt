@@ -5,14 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.openlauncher.tv.app.LauncherApplication
-import com.openlauncher.tv.service.TimeTrackingService
 import com.openlauncher.tv.ui.settings.SystemSettingsLauncher
 import kotlinx.coroutines.launch
 
 /**
  * 仅存在于 debug 构建的联调入口：
- *   adb shell am broadcast -a com.openlauncher.tv.DEBUG --es cmd lock
- *   adb shell am broadcast -a com.openlauncher.tv.DEBUG --es cmd reset
+ *   adb shell am broadcast -a com.openlauncher.tv.DEBUG --es cmd refresh
+ *   adb shell am broadcast -a com.openlauncher.tv.DEBUG --es cmd sysset --es target WIFI
  */
 class DebugCommandReceiver : BroadcastReceiver() {
 
@@ -22,16 +21,12 @@ class DebugCommandReceiver : BroadcastReceiver() {
         Log.d(TAG, "debug cmd=$cmd")
 
         when (cmd) {
-            // 把单次额度设成 0 并开启儿童模式，下一秒计时服务就会触发锁定
-            "lock" -> {
-                app.parental.setSingleLimitMinutes(0)
-                app.parental.setKidsMode(true)
-                TimeTrackingService.startService(context)
-            }
-
-            // 直接把家长 PIN 设为 1234，省去在电视上点九宫格
-            "pin" -> {
-                app.applicationScope.launch { app.parental.setPin("1234") }
+            // 重新扫描已安装应用（等价于跑一次开机同步）
+            "refresh" -> {
+                app.applicationScope.launch {
+                    val result = runCatching { app.appRepository.scanAndSyncInstalledApps() }
+                    Log.d(TAG, "refresh -> ${result.isSuccess}")
+                }
             }
 
             // 联调系统设置各入口：--es cmd sysset --es target WIFI
@@ -41,13 +36,6 @@ class DebugCommandReceiver : BroadcastReceiver() {
                     .getOrDefault(SystemSettingsLauncher.Target.ROOT)
                 val ok = SystemSettingsLauncher.open(context, target)
                 Log.d(TAG, "sysset $target -> $ok")
-            }
-
-            "reset" -> {
-                app.parental.setKidsMode(false)
-                app.parental.setSingleLimitMinutes(45)
-                app.parental.resetToday()
-                TimeTrackingService.stopService(context)
             }
         }
     }

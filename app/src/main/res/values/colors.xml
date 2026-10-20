@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg_root">#0F172A</color>
-    <color name="bg_lock">#F2020617</color>
-    <color name="card_bg">#252830</color>
-    <color name="card_focus_stroke">#38BDF8</color>
-    <color name="card_focus_fill">#2238BDF8</color>
-    <color name="text_primary">#F8FAFC</color>
-    <color name="text_secondary">#94A3B8</color>
-    <color name="text_accent">#38BDF8</color>
-    <color name="status_normal">#38BDF8</color>
-    <color name="status_warn">#F43F5E</color>
-    <color name="pin_key_bg">#334155</color>
-    <color name="pin_key_focus_bg">#0284C7</color>
-    <color name="ic_launcher_background">#0284C7</color>
+    <!-- Apple TV 风格的深色底：纯黑留白，让磁贴和氛围光成为主角 -->
+    <color name="bg_root">#000000</color>
+    <color name="surface">#1C1C1E</color>
+    <color name="surface_strong">#2C2C2E</color>
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#8E8E93</color>
+    <color name="accent">#0A84FF</color>
+    <color name="ic_launcher_background">#0A84FF</color>
 </resources>

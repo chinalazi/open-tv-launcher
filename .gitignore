@@ -13,3 +13,6 @@
 # 部署脚本生成的 adb 私钥（绝不入库）
 deploy/.adbkey/
 *.log
+
+# Gradle 构建产物（各模块）
+build/
