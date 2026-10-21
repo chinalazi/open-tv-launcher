@@ -37,5 +37,25 @@
         <item name="android:textColorSecondary">@color/text_secondary</item>
         <item name="colorAccent">@color/accent</item>
     </style>
+    <!-- 弹窗里每个分区的小标题 -->
+    <style name="SheetLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">#850F2E26</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- 壁纸设置弹窗：全屏透明窗口，遮罩和卡片都画在布局里，焦点完全交给我们自己管 -->
+    <style name="DialogSheet" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
 
 </resources>

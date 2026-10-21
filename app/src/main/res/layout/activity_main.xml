@@ -4,107 +4,408 @@
     android:layout_height="match_parent"
     android:background="@color/bg_root">
 
-    <!-- 氛围光：跟随焦点应用的主色变化 -->
-    <com.openlauncher.tv.ui.home.AmbientGlowView
-        android:id="@+id/glow"
+    <!-- 全屏壁纸背景（同一张图的极简缩略图放大，天然糊化 + 提亮压成薄荷绿） -->
+    <com.openlauncher.tv.ui.home.BackdropView
+        android:id="@+id/backdrop"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:paddingStart="22dp"
+        android:paddingTop="16dp"
+        android:paddingEnd="22dp"
+        android:paddingBottom="14dp">
 
-        <!-- 顶部：时钟 + 日期，下面是聚焦应用的大字标题 -->
+        <!-- ============ 左列：时间 + 画框 + 应用货架 ============ -->
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingStart="46dp"
-            android:paddingTop="30dp"
-            android:paddingEnd="46dp">
+            android:layout_width="610dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- 时间：上面大号时间，下面白色胶囊里放日期和星期 + 开机时长 -->
+            <TextView
+                android:id="@+id/clock_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-light"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.01"
+                android:shadowColor="#59001410"
+                android:shadowDx="0"
+                android:shadowDy="2"
+                android:shadowRadius="9"
+                android:text="--:--"
+                android:textColor="@color/text_primary"
+                android:textSize="40sp" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="bottom"
+                android:layout_marginTop="7dp"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <TextClock
-                    android:id="@+id/tv_clock"
+                <TextView
+                    android:id="@+id/clock_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif-thin"
-                    android:format12Hour="HH:mm"
-                    android:format24Hour="HH:mm"
-                    android:includeFontPadding="false"
-                    android:letterSpacing="0.02"
-                    android:textColor="@color/text_primary"
-                    android:textSize="34sp" />
+                    android:background="@drawable/bg_date_pill"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.04"
+                    android:paddingStart="14dp"
+                    android:paddingTop="5dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="5dp"
+                    android:textColor="@color/green_ink"
+                    android:textSize="13sp" />
 
-                <TextClock
-                    android:id="@+id/tv_date"
+                <TextView
+                    android:id="@+id/clock_uptime"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:layout_marginBottom="5dp"
-                    android:fontFamily="sans-serif"
-                    android:format12Hour="M月d日 EEEE"
-                    android:format24Hour="M月d日 EEEE"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="14sp" />
-
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_uptime_pill"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.04"
+                    android:paddingStart="14dp"
+                    android:paddingTop="5dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="5dp"
+                    android:text="已开机 --"
+                    android:textColor="@color/green_ink_soft"
+                    android:textSize="13sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/tv_hero_title"
+            <!-- 每日壁纸画框 -->
+            <FrameLayout
+                android:id="@+id/wallpaper_frame"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-medium"
-                android:includeFontPadding="false"
-                android:maxLines="1"
-                android:textColor="@color/text_primary"
-                android:textSize="40sp" />
+                android:layout_height="262dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_frame">
+
+                <ImageView
+                    android:id="@+id/frame_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="每日壁纸"
+                    android:scaleType="centerCrop" />
+
+                <!-- 底部渐变压暗，保证说明文字可读 -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="86dp"
+                    android:layout_gravity="bottom"
+                    android:background="@drawable/bg_frame_scrim" />
+
+                <!-- 右上角：壁纸设置（图片种类 / 来源 / 接口地址 都在里面） -->
+                <FrameLayout
+                    android:id="@+id/btn_wallpaper_settings"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="@drawable/bg_gear_btn"
+                    android:clickable="true"
+                    android:contentDescription="壁纸设置"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true">
+
+                    <ImageView
+                        android:id="@+id/ic_wallpaper_settings"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_gear"
+                        android:tint="@color/icon_on_circle" />
+                </FrameLayout>
+
+                <!-- 左下角：图片说明 -->
+                <TextView
+                    android:id="@+id/frame_caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|start"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="12dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:shadowColor="#80000000"
+                    android:shadowDx="0"
+                    android:shadowDy="1"
+                    android:shadowRadius="6"
+                    android:text="正在准备今日壁纸…"
+                    android:textColor="#F2FFFFFF"
+                    android:textSize="12sp" />
+
+            </FrameLayout>
+
+            <!-- 分类货架 -->
+            <ScrollView
+                android:id="@+id/rows_scroll"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="6dp"
+                android:clipToPadding="false"
+                android:fadingEdge="none"
+                android:fillViewport="true"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/rows_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </ScrollView>
 
             <TextView
-                android:id="@+id/tv_hero_subtitle"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@color/text_secondary"
-                android:textSize="15sp" />
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="2dp"
+                android:shadowColor="#59001410"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="4"
+                android:text="按住菜单键可管理应用"
+                android:textColor="#B8FFFFFF"
+                android:textSize="11sp" />
 
         </LinearLayout>
 
-        <!-- 分类货架 -->
-        <ScrollView
-            android:id="@+id/rows_scroll"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:fadingEdge="none"
-            android:fillViewport="true"
-            android:overScrollMode="never"
-            android:paddingTop="16dp"
-            android:scrollbars="none">
+        <!-- 中间的空白，把右列顶到最右边 -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
+        <!-- ============ 右列：快捷图标 + 内存卡 + 更多 ============ -->
+        <LinearLayout
+            android:layout_width="190dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!-- 右上角：网络连接 / 信号源 / 账号与安全（圆钮，聚焦变实心绿） -->
             <LinearLayout
-                android:id="@+id/rows_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="bottom"
-                android:orientation="vertical"
-                android:paddingStart="26dp"
-                android:paddingEnd="26dp"
-                android:paddingBottom="26dp" />
+                android:gravity="end"
+                android:orientation="horizontal">
 
-        </ScrollView>
+                <FrameLayout
+                    android:id="@+id/btn_network"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_icon_btn"
+                    android:clickable="true"
+                    android:contentDescription="网络连接"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_wifi"
+                        android:tint="@color/icon_on_circle" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/btn_source"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_icon_btn"
+                    android:clickable="true"
+                    android:contentDescription="信号源"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_input"
+                        android:tint="@color/icon_on_circle" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/btn_account"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_icon_btn"
+                    android:clickable="true"
+                    android:contentDescription="账号与安全"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_shield"
+                        android:tint="@color/icon_on_circle" />
+                </FrameLayout>
+
+            </LinearLayout>
+
+            <!-- 内存占用 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:paddingStart="12dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="10dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="内存占用"
+                    android:textColor="@color/green_ink_soft"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.openlauncher.tv.ui.home.RingProgressView
+                        android:id="@+id/ring_memory"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_memory_free"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="可用 —"
+                            android:textColor="#B30F2E26"
+                            android:textSize="11sp" />
+
+                        <LinearLayout
+                            android:id="@+id/btn_clean"
+                            android:layout_width="wrap_content"
+                            android:layout_height="30dp"
+                            android:layout_marginTop="7dp"
+                            android:background="@drawable/bg_btn_primary"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="12dp">
+
+                            <ImageView
+                                android:layout_width="13dp"
+                                android:layout_height="13dp"
+                                android:contentDescription="一键清理"
+                                android:duplicateParentState="true"
+                                android:src="@drawable/ic_clean"
+                                android:tint="#FFFFFFFF" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="5dp"
+                                android:duplicateParentState="true"
+                                android:text="一键清理"
+                                android:textColor="#FFFFFFFF"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- 右下角：机器人设置 + 更多（更多与左侧「常用应用」同一水平线） -->
+            <LinearLayout
+                android:id="@+id/home_actions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/btn_robot_cfg"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/bg_icon_btn"
+                    android:clickable="true"
+                    android:contentDescription="机器人设置"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="机器人设置"
+                        android:duplicateParentState="true"
+                        android:src="@drawable/ic_robot_cfg"
+                        android:tint="@color/icon_on_circle" />
+                </FrameLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
+
+    <!-- 桌面智能赛博机器人伴侣：全屏自由反重力巡航、特技动作与多态互动 -->
+    <com.openlauncher.tv.ui.home.DesktopPetView
+        android:id="@+id/desktop_pet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- 图标聚焦时浮出的名称气泡：位置由代码贴到当前按钮下方 -->
+    <TextView
+        android:id="@+id/tv_focus_tip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_tip_pill"
+        android:fontFamily="sans-serif-medium"
+        android:paddingStart="12dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="4dp"
+        android:textColor="#EAFFF7"
+        android:textSize="11sp"
+        android:visibility="gone" />
 
 </FrameLayout>

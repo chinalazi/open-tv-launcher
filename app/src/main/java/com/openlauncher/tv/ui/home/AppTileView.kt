@@ -23,7 +23,9 @@ import com.openlauncher.tv.data.local.AppItemEntity
 class AppTileView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
+    /** 指定方块边长（dp）。0 表示按屏宽自动取尺寸。 */
+    sizeDp: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
 
     private val iconBox = FrameLayout(context)
@@ -37,9 +39,11 @@ class AppTileView @JvmOverloads constructor(
     var focusChanged: ((Boolean) -> Unit)? = null
 
     private val tileSize: Int = when {
-        resources.configuration.screenWidthDp >= 1280 -> 112
-        resources.configuration.screenWidthDp >= 960 -> 96
-        else -> 84
+        sizeDp > 0 -> sizeDp
+        resources.configuration.screenWidthDp >= 1280 -> 104
+        // 960dp（1080p 电视）：一行要放得下「第三方应用 + 设置 + 更多」
+        resources.configuration.screenWidthDp >= 960 -> 80
+        else -> 74
     }
 
     private val cornerRadius: Int = (tileSize * 0.23f).toInt()
@@ -68,6 +72,7 @@ class AppTileView @JvmOverloads constructor(
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
             setTextColor(LABEL_NORMAL)
+            setShadowLayer(7f, 0f, 1f, 0x73000F0C)
             textSize = 14f
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         }
@@ -87,9 +92,10 @@ class AppTileView @JvmOverloads constructor(
         applyLook(AppPalette.colorOf(context, item.packageName))
     }
 
-    fun bindAction(@DrawableRes iconRes: Int, title: String, color: Int) {
+    fun bindAction(@DrawableRes iconRes: Int, title: String, color: Int, iconTint: Int? = null) {
         labelView.text = title
         iconView.setImageResource(iconRes)
+        if (iconTint == null) iconView.clearColorFilter() else iconView.setColorFilter(iconTint)
         contentDescription = title
         applyLook(color)
     }

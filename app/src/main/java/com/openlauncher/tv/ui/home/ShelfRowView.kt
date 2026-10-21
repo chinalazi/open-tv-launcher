@@ -31,10 +31,11 @@ class ShelfRowView(
 
         titleView.apply {
             textSize = 15f
-            setTextColor(0xFF8E8E93.toInt())
+            setTextColor(0xD9FFFFFF.toInt())
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             letterSpacing = 0.02f
-            setPadding(dp(20), 0, 0, dp(6))
+            setPadding(dp(16), 0, 0, dp(6))
+            setShadowLayer(6f, 0f, 1f, 0x66001410)
         }
         addView(
             titleView,
@@ -51,7 +52,7 @@ class ShelfRowView(
             clipChildren = false
             clipToPadding = false
             overScrollMode = View.OVER_SCROLL_NEVER
-            setPadding(dp(14), dp(8), dp(14), dp(12))
+            setPadding(dp(4), dp(8), dp(4), dp(12))
             itemAnimator = null
         }
         addView(
@@ -63,10 +64,15 @@ class ShelfRowView(
         )
     }
 
-    fun bind(title: String, tiles: List<TileItem>) {
+    fun bind(
+        title: String,
+        tiles: List<TileItem>,
+        rightNeighborId: Int = View.NO_ID,
+        upNeighborId: Int = View.NO_ID
+    ) {
         titleView.text = title
         items = tiles
-        recycler.adapter = TileAdapter(tiles, callbacks)
+        recycler.adapter = TileAdapter(tiles, callbacks, rightNeighborId, upNeighborId)
     }
 
     fun focusFirst() = focusAt(0)

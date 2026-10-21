@@ -10,7 +10,11 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
-    <!-- 本启动器不声明 INTERNET 权限：完全离线 -->
+    <!-- 仅用于拉取 Bing 每日壁纸；除此之外不发起任何网络请求 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- 一键清理：回收后台进程 -->
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
@@ -56,6 +60,13 @@
 
         <activity
             android:name=".ui.settings.CategoryManagerActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.OpenTVLauncher.Settings" />
+
+        <!-- 「更多」：系统自带应用等未直接摆在桌面上的应用 -->
+        <activity
+            android:name=".ui.allapps.AllAppsActivity"
             android:exported="false"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.OpenTVLauncher.Settings" />

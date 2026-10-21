@@ -20,16 +20,15 @@ class SettingsActivity : AppCompatActivity() {
         setupClickListeners()
         binding.tvVersion.text = buildString {
             append("OpenTV Launcher ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})")
-            append("\nAndroid ${Build.VERSION.RELEASE} · 完全离线运行，无网络权限")
+            append("\nAndroid ${Build.VERSION.RELEASE} · 仅联网获取每日壁纸，无其他网络请求")
             append("\n开源协议：MIT / Apache-2.0（AndroidX）")
         }
 
         // 遥控器进来就能直接按方向键，不用先"点亮"某个按钮
-        binding.btnSystemSettings.post { binding.btnSystemSettings.requestFocus() }
+        binding.btnWifi.post { binding.btnWifi.requestFocus() }
     }
 
     private fun setupClickListeners() {
-        binding.btnSystemSettings.setOnClickListener { openSystem(SystemSettingsLauncher.Target.ROOT) }
         binding.btnWifi.setOnClickListener { openSystem(SystemSettingsLauncher.Target.WIFI) }
         binding.btnBluetooth.setOnClickListener { openSystem(SystemSettingsLauncher.Target.BLUETOOTH) }
         binding.btnApps.setOnClickListener { openSystem(SystemSettingsLauncher.Target.APPS) }
@@ -42,13 +41,26 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 打开系统页面 + 1.2 秒看门狗。
+     *
+     * 小米电视有几个设置页会「拉起来了但不绘制」，以前用户就一直盯着黑屏等。
+     * 现在如果 1.2 秒后本页还持有窗口焦点，说明目标页没出来，立刻给出提示而不是继续干等。
+     */
     private fun openSystem(target: SystemSettingsLauncher.Target) {
-        if (SystemSettingsLauncher.open(this, target)) return
-        val hint = if (target == SystemSettingsLauncher.Target.ROOT) {
-            "这台电视不允许第三方应用打开设置主页，请用下面的分类入口"
-        } else {
-            "这台电视没有提供该设置入口"
+        val started = SystemSettingsLauncher.open(this, target)
+        if (!started) {
+            Toast.makeText(this, "这台电视没有提供该设置入口", Toast.LENGTH_SHORT).show()
+            return
         }
-        Toast.makeText(this, hint, Toast.LENGTH_LONG).show()
+        binding.root.postDelayed({
+            if (!isFinishing && hasWindowFocus()) {
+                Toast.makeText(
+                    this,
+                    "系统页面没有响应（该机型固件限制），请换个入口试试",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }, 1200L)
     }
 }

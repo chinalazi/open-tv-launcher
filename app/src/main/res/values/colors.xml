@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Apple TV 风格的深色底：纯黑留白，让磁贴和氛围光成为主角 -->
-    <color name="bg_root">#000000</color>
+    <!-- 明亮绿主题（方案 1 薄荷晨光）：背景提亮偏灰绿，卡片半透明白，强调色 #12B57F -->
+    <color name="bg_root">#0B1418</color>
     <color name="surface">#1C1C1E</color>
     <color name="surface_strong">#2C2C2E</color>
     <color name="text_primary">#FFFFFF</color>
     <color name="text_secondary">#8E8E93</color>
-    <color name="accent">#0A84FF</color>
+    <color name="accent">#12B57F</color>
+
+    <!-- 绿色系 -->
+    <color name="green">#12B57F</color>
+    <color name="green_deep">#0FA974</color>
+    <color name="green_ink">#0F2E26</color>
+    <color name="green_ink_soft">#0F5A44</color>
+    <color name="green_mist">#EAF7F1</color>
+
     <color name="ic_launcher_background">#0A84FF</color>
 </resources>

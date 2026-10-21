@@ -38,11 +38,6 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/btn_system_settings"
-                style="@style/SettingsButton"
-                android:text="全部系统设置" />
-
-            <Button
                 android:id="@+id/btn_wifi"
                 style="@style/SettingsButton"
                 android:text="Wi-Fi 网络" />

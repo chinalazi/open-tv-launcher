@@ -7,16 +7,23 @@ import android.provider.Settings
 import android.util.Log
 
 /**
- * 各家电视对标准 Settings Action 的支持差异很大：
- * 小米电视（com.xiaomi.mitv.settings）根本没有实现 android.settings.SETTINGS，
- * 所以这里为每个入口准备一组有序候选（标准 Action → 小米组件 → AOSP 组件），逐个尝试。
+ * 各家电视对标准 Settings Action 的支持差异很大，小米电视（PatchWall）尤其离谱：
+ * `com.xiaomi.mitv.settings.SETTINGS` 和 `.entry.MainActivity` 会被 startActivity 成功拉起，
+ * 但**永远不绘制**（实测 10 秒以上仍然黑屏），用户只能干等 —— 这就是"进系统设置要等很久"的根因。
+ *
+ * 所以这里的候选表只保留实测能在本机正常出画面的入口：
+ * - Wi-Fi：com.xiaomi.mitv.settings/.wifi.MitvWifiActivity（action WIFI_SETTINGS 也可）
+ * - 信号源：com.xiaomi.mitv.tvplayer/.ExternalSourceActivity（123ms）
+ * - 账号：com.xiaomi.account/...LoginActivity（约 1.2s）
  */
 object SystemSettingsLauncher {
 
-    enum class Target { ROOT, WIFI, BLUETOOTH, DISPLAY, SOUND, APPS, HOME }
+    enum class Target { ROOT, WIFI, BLUETOOTH, DISPLAY, SOUND, APPS, HOME, SOURCE, ACCOUNT }
 
     private const val TAG = "SystemSettings"
     private const val MI = "com.xiaomi.mitv.settings"
+    private const val TV_PLAYER = "com.xiaomi.mitv.tvplayer"
+    private const val MI_ACCOUNT = "com.xiaomi.account"
 
     fun open(context: Context, target: Target): Boolean {
         for (intent in candidates(target)) {
@@ -47,48 +54,58 @@ object SystemSettingsLauncher {
     private fun component(pkg: String, cls: String) = Intent().setComponent(ComponentName(pkg, cls))
 
     private fun candidates(target: Target): List<Intent> = when (target) {
+        // 本机所有「设置主页」入口都会挂住，不再尝试；UI 上改用本应用的分类入口
         Target.ROOT -> listOf(
-            // 小米电视没实现 android.settings.SETTINGS，但有自定义 action，优先用它
-            action("com.xiaomi.mitv.settings.SETTINGS"),
-            action(Settings.ACTION_SETTINGS),
-            component(MI, "$MI.entry.MainActivity"),
-            component("com.android.settings", "com.android.settings.Settings"),
             component("com.android.tv.settings", "com.android.tv.settings.MainSettings")
         )
 
         Target.WIFI -> listOf(
+            component(MI, "$MI.wifi.MitvWifiActivity"),
             action("com.xiaomi.mitv.settings.WIFI_SETTINGS"),
-            action(Settings.ACTION_WIFI_SETTINGS),
-            component(MI, "$MI.wifi.MitvWifiActivity")
+            action(Settings.ACTION_WIFI_SETTINGS)
         )
 
         Target.BLUETOOTH -> listOf(
+            component(MI, "$MI.bluetooth.MitvBluetoothActivity"),
             action("com.xiaomi.mibox.settings.BLUETOOTH_ENTRY"),
-            action(Settings.ACTION_BLUETOOTH_SETTINGS),
-            component(MI, "$MI.bluetooth.MitvBluetoothActivity")
+            action(Settings.ACTION_BLUETOOTH_SETTINGS)
         )
 
         Target.DISPLAY -> listOf(
+            component(MI, "$MI.displaysound.DisplaySoundActivity"),
             component(MI, "$MI.entry.DisplaySoundActivity"),
-            action("com.xiaomi.mitv.settings.DISPLAYSOUND_SETTINGS"),
-            action(Settings.ACTION_DISPLAY_SETTINGS)
+            action("com.xiaomi.mitv.settings.DISPLAYSOUND_SETTINGS")
         )
 
         Target.SOUND -> listOf(
+            component(MI, "$MI.displaysound.DisplaySoundActivity"),
             component(MI, "$MI.entry.DisplaySoundActivity"),
-            action("com.xiaomi.mitv.settings.DISPLAYSOUND_SETTINGS"),
-            action(Settings.ACTION_SOUND_SETTINGS)
+            action("com.xiaomi.mitv.settings.DISPLAYSOUND_SETTINGS")
         )
 
         Target.APPS -> listOf(
             action(Settings.ACTION_APPLICATION_SETTINGS),
-            component(MI, "$MI.entry.MainActivity"),
             component("com.android.settings", "com.android.settings.Settings")
         )
 
         Target.HOME -> listOf(
-            action(Settings.ACTION_HOME_SETTINGS),
-            component(MI, "$MI.entry.MainActivity")
+            action(Settings.ACTION_HOME_SETTINGS)
+        )
+
+        // 信号源（HDMI / 外接设备）
+        Target.SOURCE -> listOf(
+            component(TV_PLAYER, "$TV_PLAYER.ExternalSourceActivity"),
+            action("com.xiaomi.mitv.tvplayer.SOURCE")
+        )
+
+        // 账号与安全：优先系统设置里的「账号与安全」页（实测 561ms 正常绘制）。
+        // 注意 MiAccount 的 Activity 类名是 com.xiaomi.mitv.account.*，包名才是 com.xiaomi.account，
+        // 不能写成 "$MI_ACCOUNT.mitv.account.*"——那样拼出来的类名不存在，startActivity 会直接抛异常。
+        Target.ACCOUNT -> listOf(
+            component(MI, "$MI.entry.SecurityActivity"),
+            component(MI_ACCOUNT, "com.xiaomi.mitv.account.ui.system.LoginActivity"),
+            component(MI_ACCOUNT, "com.xiaomi.mitv.account.ui.system.CloudEntryActivity"),
+            action(Settings.ACTION_SECURITY_SETTINGS)
         )
     }
 }
