@@ -4,8 +4,105 @@
 
 - Kotlin 1.9.22 + AGP 8.2.2 + Gradle 8.2，compileSdk/targetSdk 34，minSdk 23（Android 6.0，兼容小米电视 4A）
 - AndroidX AppCompat + RecyclerView（桌面货架自绘）、Room + KSP（分类/应用数据）
-- 网络：只用系统 `HttpURLConnection` 手写请求，不引第三方网络库；壁纸取自 Bing 每日壁纸接口与 safebooru DAPI
+- 网络：只用系统 `HttpURLConnection` 手写请求，不引第三方网络库（每日壁纸已下线，现在只对时用）
 - release 沿用仓库内固定签名（`keystore/opentv.p12`），方便 CI 直出可安装包
+
+## 版本 1.7.0 左上角换成联网监视器 + 电视设置秒开
+
+这一版干了两件用户能直接看见的事：把左上那块「每日壁纸画框」换成实时联网监视器，
+以及修掉「更多 → 电视设置」点了要十几秒才出画面的老毛病。
+
+### 一、监视器：这台电视上到底能读到什么
+
+目标很硬：Android 6.0.1 普通应用，没有 root，要按进程看实时速率。四条路全部实测过：
+
+| 数据源 | 结果 | 结论 |
+| --- | --- | --- |
+| `/proc/net/tcp`、`tcp6` | 可读，含 `uid`、远端地址、`inode`、状态（`st=01` 即 ESTABLISHED） | ✅ 拿连接和归属进程 |
+| `/proc/uid_stat/<uid>/tcp_rcv`、`tcp_snd` | 可读**任意 uid** 的累计字节 | ✅ 拿速率（差分） |
+| `/proc/net/xt_qtaguid/stats` | 应用侧只吐出自己那 2 行（`qtaguid lines=2 uids=1`） | ❌ 沙箱限制 |
+| `TrafficStats.getUidRxBytes(uid)` | 其它 uid 恒返回 0（Android 6 起按 uid 隔离） | ❌ |
+| `NetworkStatsManager` | 需要 `USAGE_ACCESS_SETTINGS`，本机没有这个页面，无法授权 | ❌ |
+
+于是 `NetTrafficMonitor` 的做法是：读两条 tcp 表拿「谁连着谁」，读 `/proc/uid_stat`
+拿每个 uid 的累计收发，两次采样差分得到速率，再按 uid 的连接数把速率摊到具体连接上。
+
+- 采样在 `HandlerThread("net-monitor")` 上每秒一次，结果回主线程；
+- 文件名带 `uid_stat` 不存在时（部分新系统）退回 qtaguid，仍失败则只显示连接、速率显示 `—`；
+- IPv6 地址里 `::ffff:a.b.c.d` 一律还原成点分十进制 —— 电视上隔三米看一堆冒号，根本认不出是哪台服务器。
+
+### 二、界面：整块 Canvas 自绘，两个视图一个按钮
+
+`NetMonitorView` 不用任何子 View，直接画：
+
+- 头部：标题 + LIVE 指示灯 + 走势 sparkline + 进程数/连接数 + 右上角**「切换」按钮**；
+- 视图 A「连接日志」：每 2 秒推一行，最多 7 行，滚动动画用 `ValueAnimator` 平移半行；
+- 视图 B「进程排行」：按本秒速率排序，条形长度取 `sqrt(rate / max)`（不取线性，否则大流量一柱擎天，
+  小流量全是 0 长度）；进程不满一屏补空槽，避免半屏留白。
+
+遥控器上**按确定键等于按「切换」按钮**（`onKeyDown` 拦 CENTER/ENTER），因为电视上敲 1/2 这种需求不现实。
+切换时有 toast 提示当前视图。
+
+行合并的坑：长连接下载时每一轮采样都是同一个进程，直接 push 会把一屏刷成同一个包名。
+现在同 `label + pkg` 的行**原地更新数值**、保留第一次出现的时间，读起来是「某进程从 xx:xx:xx 起一直在联网」。
+
+另外 `formatRate(0)` 返回 `—` 而不是 `0 B/s`，且速率为 0 时不画条形 —— 一屏 0 B/s 看着像坏了。
+
+### 三、时间戳必须走 TimeSync
+
+列表里的行时间一开始用 `SimpleDateFormat().format(Date())`，结果和左上角大钟差 37 分钟 ——
+因为系统时钟本身就慢（见 1.6.4）。凡是界面显示时间，一律 `TimeSync.now()`，这个坑这版又踩了一次。
+
+### 四、壁纸功能整套下线
+
+删除：`WallpaperRepository.kt`、`WallpaperSettingsDialog.kt`、`dialog_wallpaper.xml`，
+以及 `bg_frame`、`bg_frame_scrim`、`bg_thumb`、`ic_kind_*` 等 8 个 drawable（删前 grep 确认零引用）。
+`BackdropView` 从「Bitmap 放大糊化」改成**纯渐变**（竖向薄荷底 + 斜向微光 + 左上径向光斑），零 IO、零大图内存。
+
+### 五、机器人让开监视器：给它们一块舞台
+
+机器人是一层全屏自绘、盖在所有控件之上，飘到监视器上就把速率数字糊住了。
+第一版想用「禁区矩形 + 找点重试」，但没用 —— 因为动作编排（打招呼站屏幕中间、双人舞绕屏幕中心转）
+写死了绝对位置，`pickTarget` 只管自由巡航。
+
+最终办法是把**坐标系本身**缩进一块空地（`DesktopPetView.stageRect`）：
+
+- 逻辑尺寸用舞台的宽高，动作编排全是百分比，自动跟着缩；
+- `onDraw` 里整体 `canvas.translate(舞台左上角)`；
+- 舞台只有屏幕四分之一大，按舞台算缩放会把机器人缩成小不点，所以加了 `fixedScale` 由外部指定倍率。
+
+舞台取监视器右下、内存卡之下、「更多」磁贴之上的那块空地（屏幕比例 0.672–0.912 × 0.360–0.765）。
+
+> 踩坑：新属性一开始叫 `stage`，和动作状态机里的 `private var stage: Int`（动作内部阶段标记）撞名，
+> 编译器报 6 处 `Overload resolution ambiguity`，改名 `stageRect` 才对。
+
+### 六、「电视设置」为什么慢：根因不在我们这边
+
+`com.xiaomi.mitv.settings/.entry.MainActivity`（设置主页）自己有问题：
+
+```
+MainActivity.onCreate → SettingsPopup → MainView → SettingsUtil.isEthDeviceUp
+  反复读 /sys/class/net/eth1/carrier（文件不存在）
+ConfigurationManager.getService() 在主线程每 500ms 轮询一次，连续 getService() 0..5, service = null
+07:44:08 启动，07:44:11 还在轮询
+```
+
+外部没法优化别人家的主线程。所以在 `AllAppsActivity.launchApp()` 里拦下 `com.xiaomi.mitv.settings`
+这个包，直接跳本应用的 `SettingsActivity`（秒开，且 Wi-Fi / 蓝牙 / 应用 / 显示 / 声音 / 桌面 /
+账号 / 关于 / 系统主页 都能分类直达，每个入口都是细分 Activity，实测 420–560ms）。
+
+设置页另外补了三个按钮：账号与安全（`.entry.SecurityActivity`）、关于本机（`.entry.AboutActivity`）、
+系统设置主页（`.entry.MainActivity`，点之前先 toast「可能要十几秒」，watchdog 放宽到 14 秒）。
+
+> 注意：小米账号的 Activity 类名在 `com.xiaomi.mitv.account.*`，**包名**才是 `com.xiaomi.account`。
+> 写成 `"$pkg.mitv.account.*"` 会拼出不存在的类，显式组件直接抛异常。
+
+### 七、其它小修
+
+- 分辨率/padding 变化时机器人位置重算（`onSizeChanged` 只置 `initialized = false`，真正初始化放 `onDraw`）；
+- 监视器右上角的「切换」按钮用 `btnRect` 记录位置，纯视觉，不做点击热区 —— 电视上没人拿手指戳；
+- 清掉调试期日志（`perUid=…`、`qtaguid lines=…`、`监视器禁区`），只留真正的告警。
+
 
 ## 版本 1.6.4 时钟校对 + 开机时长
 

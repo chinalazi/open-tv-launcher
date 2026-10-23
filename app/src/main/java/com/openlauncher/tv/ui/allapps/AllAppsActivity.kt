@@ -14,6 +14,7 @@ import com.openlauncher.tv.databinding.ActivityAllAppsBinding
 import com.openlauncher.tv.ui.home.TileAdapter
 import com.openlauncher.tv.ui.home.TileCallbacks
 import com.openlauncher.tv.ui.home.TileItem
+import com.openlauncher.tv.ui.settings.SettingsActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -59,6 +60,11 @@ class AllAppsActivity : AppCompatActivity() {
             ?: binding.gridAllApps.postDelayed({ focusFirst() }, 80L)
     }
 
+    private companion object {
+        /** 小米电视「设置」的包名：它的主页入口慢到不可用，见 [launchApp]。 */
+        const val MI_SETTINGS = "com.xiaomi.mitv.settings"
+    }
+
     private fun isSystem(packageName: String): Boolean = systemCache.getOrPut(packageName) {
         runCatching {
             val info = packageManager.getApplicationInfo(packageName, 0)
@@ -67,6 +73,13 @@ class AllAppsActivity : AppCompatActivity() {
     }
 
     private fun launchApp(entity: AppItemEntity) {
+        // 小米系统设置的 launcher 入口（.entry.MainActivity）在主线程轮询自家系统服务，
+        // 实测十几秒才绘制，用户观感就是"按了没反应"。这里换成我们自己的分类设置页：
+        // 秒开，每一类再直达对应的系统细分页（Wi-Fi 420ms、账号 467ms）。
+        if (entity.packageName == MI_SETTINGS) {
+            startActivity(Intent(this, SettingsActivity::class.java))
+            return
+        }
         val intent = Intent().apply {
             component = ComponentName(entity.packageName, entity.activityName)
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED

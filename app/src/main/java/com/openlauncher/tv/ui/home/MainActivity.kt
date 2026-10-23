@@ -3,6 +3,7 @@ package com.openlauncher.tv.ui.home
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.graphics.RectF
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -48,13 +49,12 @@ class MainActivity : AppCompatActivity() {
 
     private var lastSignature: String? = null
     private var focusedKey: String? = null
-    private var wallpaperApplied = false
 
     private val systemCache = HashMap<String, Boolean>()
     private val statusHandler = Handler(Looper.getMainLooper())
     private var statusTicker: Runnable? = null
 
-    private lateinit var wallpaper: WallpaperRepository
+    private lateinit var netMonitor: NetTrafficMonitor
 
     private val dateFormat = SimpleDateFormat("yyyy年M月d日", Locale.CHINA)
     private val weekFormat = SimpleDateFormat("EEEE", Locale.CHINA)
@@ -72,14 +72,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.rowsScroll.isVerticalScrollBarEnabled = false
-        // clipToOutline 在 XML 里的属性要 API 31 才认，这里用代码设置，低版本也能裁圆角
-        binding.wallpaperFrame.clipToOutline = true
 
-        wallpaper = WallpaperRepository.get(this)
+        netMonitor = NetTrafficMonitor.get(this)
 
         setupQuickButtons()
+        setupNetMonitor()
         setupHomeActions()
-        setupWallpaper()
         observeData()
     }
 
@@ -99,88 +97,61 @@ class MainActivity : AppCompatActivity() {
                 updateClock()
             }
         }
-        // 从应用回到桌面：如果后台已经下好新壁纸，这时候再切换，用户看不到加载过程
-        if (wallpaperApplied) {
-            lifecycleScope.launch {
-                val updated = wallpaper.onReturnToHome() ?: return@launch
-                applyWallpaper(updated, animate = true)
-            }
-        }
+        netMonitor.start { snapshot -> binding.netMonitor.submit(snapshot) }
     }
 
     override fun onPause() {
         super.onPause()
+        netMonitor.stop()
         stopStatusTicker()
     }
 
-    // ---- 壁纸 -------------------------------------------------------------------
+    // ---- 联网监视器 -------------------------------------------------------------
 
-    private fun setupWallpaper() {
-        binding.frameCaption.text = "正在准备今日壁纸…"
-        lifecycleScope.launch {
-            val loaded = wallpaper.prepareOnLaunch()
-            applyWallpaper(loaded, animate = false)
-            // 本地缓存已上屏，再在后台静默下载今天的新图（存 pending，下次回来才换）
-            launch(Dispatchers.IO) {
-                val fetched = wallpaper.fetchIntoPending()
-                if (!fetched) return@launch
-                // 首次安装没有任何缓存时，没得看就直接把新图放上来
-                val adopted = wallpaper.adoptPendingIfNoCurrent() ?: return@launch
-                withContext(Dispatchers.Main) { applyWallpaper(adopted, animate = false) }
-            }
+    /**
+     * 左上角那块「谁在联网」。整块 Canvas 自绘，遥控器聚焦后按确定切换日志流 / 排行。
+     * 焦点链路：下面是动态生成的货架，默认搜索找不到，按「下」手动交回最近聚焦的磁贴。
+     */
+    private fun setupNetMonitor() {
+        val view = binding.netMonitor
+        view.nextFocusRightId = R.id.btn_network
+        view.onModeChanged = { mode -> toast("监视视图：${mode.label}") }
+        view.onFocusTip = { focused ->
+            showTip(view, "网络监视 · 按确定切换", placeLeftOf = false, focused = focused)
         }
-        binding.btnWallpaperSettings.setOnClickListener { showWallpaperSettings() }
-        binding.btnWallpaperSettings.setOnFocusChangeListener { view, focused ->
-            showTip(view as View, "壁纸设置", placeLeftOf = true, focused = focused)
-        }
-        // 齿轮在画框里，跟货架隔着 ScrollView，默认焦点搜索找不到彼此，这里显式接通
-        binding.btnWallpaperSettings.setOnKeyListener { _, keyCode, event ->
+        view.setOnKeyListener { _, keyCode, event ->
             if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener false
             when (keyCode) {
                 KeyEvent.KEYCODE_DPAD_DOWN -> {
                     restoreFocus()
                     true
                 }
-                KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                    binding.btnNetwork.requestFocus()
-                    true
-                }
+                KeyEvent.KEYCODE_DPAD_LEFT -> true    // 已经在最左边，吃掉按键免得焦点乱跑
                 else -> false
             }
         }
+        // 机器人别在这块屏幕上闲逛：它是全屏自绘、盖在最上层，飘过来会把数字糊掉
+        setupPetStage()
     }
 
-    /** 画框右上角齿轮：弹出壁纸设置面板（种类 / 来源 / 接口地址 / 预览）。 */
-    private fun showWallpaperSettings() {
-        hideTip()
-        WallpaperSettingsDialog(this, wallpaper) { loaded ->
-            applyWallpaper(loaded, animate = true)
-        }.show()
+    /**
+     * 给桌面机器人划一块舞台：监视器右下方那块空地（内存卡之下、「更多」磁贴之上）。
+     *
+     * 机器人是一层全屏自绘、盖在所有控件之上，全屏漫游早晚会把监视器的数字糊住；
+     * 与其在十来个动作函数里加避让，不如把它自己的坐标系缩进这块空地：
+     * 动作编排全按「舞台宽高」的百分比写，自动就跟着缩，一笔都不用改。
+     */
+    private fun setupPetStage() {
+        val dm = resources.displayMetrics
+        val sw = dm.widthPixels.toFloat()
+        val sh = dm.heightPixels.toFloat()
+        if (sw <= 0f || sh <= 0f || sw < sh) return       // 只对横屏彩电布局生效
+        binding.desktopPet.stageRect = RectF(sw * 0.672f, sh * 0.360f, sw * 0.912f, sh * 0.765f)
+        // 舞台只有屏幕四分之一大，按舞台尺寸算缩放会把机器人缩成小不点，这里给固定倍率
+        binding.desktopPet.fixedScale = minOf(sw, sh) / 720f * 0.85f * 0.85f
     }
 
-    private fun applyWallpaper(loaded: WallpaperRepository.Loaded, animate: Boolean) {
-        wallpaperApplied = true
-        val frame = loaded.frame
-        if (frame != null) {
-            if (animate && binding.frameImage.drawable != null) {
-                binding.frameImage.animate().alpha(0.35f).setDuration(160L).withEndAction {
-                    binding.frameImage.setImageBitmap(frame)
-                    binding.frameImage.animate().alpha(1f).setDuration(320L).start()
-                }.start()
-            } else {
-                binding.frameImage.setImageBitmap(frame)
-            }
-        }
-        binding.backdrop.setBitmap(loaded.backdrop)
-
-        val meta = loaded.meta
-        binding.frameCaption.text = when {
-            meta == null -> "正在准备今日壁纸…"
-            meta.date.isBlank() -> meta.title
-            else -> "${meta.title} · ${meta.date}"
-        }
-    }
-
+    /** 从监视器往下走时，交回最近一次聚焦的磁贴（没有就第一行第一个）。 */
     // ---- 右侧快捷入口 -----------------------------------------------------------
 
     private fun setupQuickButtons() {
@@ -443,7 +414,7 @@ class MainActivity : AppCompatActivity() {
                             category.name,
                             tiles,
                             rightNeighborId = R.id.btn_home_more,
-                            upNeighborId = R.id.btn_wallpaper_settings
+                            upNeighborId = R.id.net_monitor
                         ),
                         rowParams()
                     )

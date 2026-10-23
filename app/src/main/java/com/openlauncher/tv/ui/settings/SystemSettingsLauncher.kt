@@ -18,7 +18,7 @@ import android.util.Log
  */
 object SystemSettingsLauncher {
 
-    enum class Target { ROOT, WIFI, BLUETOOTH, DISPLAY, SOUND, APPS, HOME, SOURCE, ACCOUNT }
+    enum class Target { ROOT, WIFI, BLUETOOTH, DISPLAY, SOUND, APPS, HOME, SOURCE, ACCOUNT, ABOUT }
 
     private const val TAG = "SystemSettings"
     private const val MI = "com.xiaomi.mitv.settings"
@@ -54,8 +54,11 @@ object SystemSettingsLauncher {
     private fun component(pkg: String, cls: String) = Intent().setComponent(ComponentName(pkg, cls))
 
     private fun candidates(target: Target): List<Intent> = when (target) {
-        // 本机所有「设置主页」入口都会挂住，不再尝试；UI 上改用本应用的分类入口
+        // 设置主页。注意它是全机最慢的一个入口：MainActivity.onCreate 会在主线程
+        // 轮询 ConfigurationManager 的系统服务（每次 sleep 500ms），实测十几秒才出画面。
+        // 所以桌面上不再直接开它，走本应用的 SettingsActivity 分类入口；这里只作兜底。
         Target.ROOT -> listOf(
+            component(MI, "$MI.entry.MainActivity"),
             component("com.android.tv.settings", "com.android.tv.settings.MainSettings")
         )
 
@@ -106,6 +109,12 @@ object SystemSettingsLauncher {
             component(MI_ACCOUNT, "com.xiaomi.mitv.account.ui.system.LoginActivity"),
             component(MI_ACCOUNT, "com.xiaomi.mitv.account.ui.system.CloudEntryActivity"),
             action(Settings.ACTION_SECURITY_SETTINGS)
+        )
+
+        // 关于：设备信息 / 存储 / 系统更新都在这一页（实测可正常绘制）
+        Target.ABOUT -> listOf(
+            component(MI, "$MI.entry.AboutActivity"),
+            action(Settings.ACTION_DEVICE_INFO_SETTINGS)
         )
     }
 }

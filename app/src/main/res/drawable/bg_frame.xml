@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- 画框底：圆角 + 细白描边；配合 clipToOutline 裁掉图片四角 -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <corners android:radius="22dp" />
-    <solid android:color="#14FFFFFF" />
-    <stroke android:width="1dp" android:color="#57FFFFFF" />
-</shape>

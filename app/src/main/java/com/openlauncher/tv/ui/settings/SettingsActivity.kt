@@ -20,7 +20,7 @@ class SettingsActivity : AppCompatActivity() {
         setupClickListeners()
         binding.tvVersion.text = buildString {
             append("OpenTV Launcher ${BuildConfig.VERSION_NAME} (build ${BuildConfig.VERSION_CODE})")
-            append("\nAndroid ${Build.VERSION.RELEASE} · 仅联网获取每日壁纸，无其他网络请求")
+            append("\nAndroid ${Build.VERSION.RELEASE} · 联网进程监视只读本机 /proc，数据不出设备")
             append("\n开源协议：MIT / Apache-2.0（AndroidX）")
         }
 
@@ -35,6 +35,14 @@ class SettingsActivity : AppCompatActivity() {
         binding.btnDisplay.setOnClickListener { openSystem(SystemSettingsLauncher.Target.DISPLAY) }
         binding.btnSound.setOnClickListener { openSystem(SystemSettingsLauncher.Target.SOUND) }
         binding.btnHome.setOnClickListener { openSystem(SystemSettingsLauncher.Target.HOME) }
+        binding.btnAccount.setOnClickListener { openSystem(SystemSettingsLauncher.Target.ACCOUNT) }
+        binding.btnAbout.setOnClickListener { openSystem(SystemSettingsLauncher.Target.ABOUT) }
+        // 设置主页是这台机器上最慢的入口（主线程轮询系统服务，十几秒才绘制），
+        // 所以单独放在最后，并且先把等待预期说清楚，别让人以为按坏了
+        binding.btnSystemRoot.setOnClickListener {
+            Toast.makeText(this, "正在打开系统设置主页，可能要十几秒…", Toast.LENGTH_LONG).show()
+            openSystem(SystemSettingsLauncher.Target.ROOT, watchdogMs = 14_000L)
+        }
 
         binding.btnCategories.setOnClickListener {
             startActivity(Intent(this, CategoryManagerActivity::class.java))
@@ -42,12 +50,13 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     /**
-     * 打开系统页面 + 1.2 秒看门狗。
+     * 打开系统页面 + 看门狗。
      *
      * 小米电视有几个设置页会「拉起来了但不绘制」，以前用户就一直盯着黑屏等。
-     * 现在如果 1.2 秒后本页还持有窗口焦点，说明目标页没出来，立刻给出提示而不是继续干等。
+     * 现在如果超时后本页还持有窗口焦点，说明目标页没出来，立刻给出提示而不是继续干等。
+     * [watchdogMs] 可以按入口的已知耗时放宽（设置主页要十几秒）。
      */
-    private fun openSystem(target: SystemSettingsLauncher.Target) {
+    private fun openSystem(target: SystemSettingsLauncher.Target, watchdogMs: Long = 1200L) {
         val started = SystemSettingsLauncher.open(this, target)
         if (!started) {
             Toast.makeText(this, "这台电视没有提供该设置入口", Toast.LENGTH_SHORT).show()
@@ -61,6 +70,6 @@ class SettingsActivity : AppCompatActivity() {
                     Toast.LENGTH_LONG
                 ).show()
             }
-        }, 1200L)
+        }, watchdogMs)
     }
 }

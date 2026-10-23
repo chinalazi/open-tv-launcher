@@ -137,6 +137,27 @@ class DesktopPetView @JvmOverloads constructor(
 
     private val random = Random()
 
+    /**
+     * 机器人的「舞台」：屏幕坐标系里允许活动的矩形，默认（null）等于整块自己。
+     *
+     * 为什么需要它：桌面左上角被联网监视器整块占掉了，机器人是一层全屏自绘、盖在所有控件
+     * 之上，飘过去就把速率数字糊住了。动作编排（打招呼站中间、双人舞绕屏幕中心转）本来就
+     * 是按「整块屏幕」写的，与其改十来个动作函数，不如把坐标系本身缩到一块空地上：
+     * 逻辑尺寸用舞台宽高，绘制时整体平移到舞台左上角。
+     */
+    var stageRect: RectF? = null
+        set(value) {
+            field = value
+            initialized = false      // 舞台换了，两只的位置要按新尺寸重算
+        }
+
+    /** 舞台变小后别跟着把机器人缩小：固定倍率顶掉按尺寸算出来的缩放。0 = 自动。 */
+    var fixedScale = 0f
+
+    /** 当前舞台宽高，动作编排里的 width / height 全部指它。 */
+    private var worldW = 0f
+    private var worldH = 0f
+
     // ---- 画笔池 ----
     private val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -231,13 +252,8 @@ class DesktopPetView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        if (!initialized && w > 0 && h > 0) {
-            male.x = w * 0.34f; male.y = h * 0.42f
-            female.x = w * 0.58f; female.y = h * 0.62f
-            pickTarget(male)
-            pickTarget(female)
-            initialized = true
-        }
+        // 真正的初始化放在 onDraw 里做：只有到那时才知道舞台多大
+        initialized = false
     }
 
     // ---------------------------------------------------------------- 外部接口
@@ -248,14 +264,10 @@ class DesktopPetView @JvmOverloads constructor(
         male.headX = (random.nextFloat() - 0.5f) * 6f
         female.headX = (random.nextFloat() - 0.5f) * 6f
         if (action == PetAction.FREE) {
-            if (random.nextFloat() < 0.25f) {
-                male.targetX = width * (0.2f + 0.6f * random.nextFloat())
-                male.targetY = height * (0.35f + 0.35f * random.nextFloat())
-            }
-            if (random.nextFloat() < 0.25f) {
-                female.targetX = width * (0.2f + 0.6f * random.nextFloat())
-                female.targetY = height * (0.35f + 0.35f * random.nextFloat())
-            }
+            // 别直接摇到屏幕中上部：那块是联网监视器，机器人会盖住数字。
+            // 统一走 pickTarget，落点永远在舞台里。
+            if (random.nextFloat() < 0.25f) pickTarget(male)
+            if (random.nextFloat() < 0.25f) pickTarget(female)
         }
         postInvalidateOnAnimation()
     }
@@ -334,20 +346,30 @@ class DesktopPetView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val w = width.toFloat()
-        val h = height.toFloat()
-        if (w <= 0f || h <= 0f) return
+        val st = stageRect
+        worldW = st?.width() ?: width.toFloat()
+        worldH = st?.height() ?: height.toFloat()
+        if (worldW <= 0f || worldH <= 0f) return
+        val ox = st?.left ?: 0f
+        val oy = st?.top ?: 0f
+
+        // 逻辑坐标一律以舞台左上角为原点，绘制时整体平移过去
+        canvas.save()
+        if (ox != 0f || oy != 0f) canvas.translate(ox, oy)
+
+        val w = worldW
+        val h = worldH
 
         val now = SystemClock.uptimeMillis()
         val dt = if (lastFrameAt == 0L) 0.016f else ((now - lastFrameAt) / 1000f).coerceIn(0.001f, 0.05f)
         lastFrameAt = now
 
         if (!initialized) {
-            male.x = w * 0.34f; male.y = h * 0.42f
-            female.x = w * 0.58f; female.y = h * 0.62f
+            male.x = w * 0.58f; male.y = h * 0.44f
+            female.x = w * 0.74f; female.y = h * 0.64f
             pickTarget(male); pickTarget(female)
             initialized = true
-            setAction(PetAction.AUTO.id)
+            setAction(action.id)
         }
 
         tick += dt * 3f
@@ -355,7 +377,7 @@ class DesktopPetView @JvmOverloads constructor(
         updateParticles(dt)
         updateBubbles(dt)
 
-        val s = min(w, h) / 720f * 0.85f
+        val s = viewScale()
 
         if (hugArms > 0.05f) drawHugArms(canvas)
 
@@ -371,6 +393,8 @@ class DesktopPetView @JvmOverloads constructor(
         if (orbR > 1f) drawFlowerOrb(canvas, orbX, orbY, orbR, s)
         drawParticles(canvas, s)
         drawBubbles(canvas, s)
+
+        canvas.restore()
 
         // 全屏重绘很吃 GPU，限到 ~45fps，动画照样顺
         if (running) postInvalidateDelayed(22L)
@@ -437,8 +461,11 @@ class DesktopPetView @JvmOverloads constructor(
     }
 
     private fun pickTarget(r: Robot) {
-        r.targetX = width * (0.12f + 0.76f * random.nextFloat())
-        r.targetY = height * (0.15f + 0.72f * random.nextFloat())
+        // 舞台本身就是空地，不用再躲别的东西了
+        val tx = worldW * (0.12f + 0.76f * random.nextFloat())
+        val ty = worldH * (0.15f + 0.72f * random.nextFloat())
+        r.targetX = tx
+        r.targetY = ty
         r.targetAt = actionTime
     }
 
@@ -467,8 +494,8 @@ class DesktopPetView @JvmOverloads constructor(
 
     private fun updateGreet(dt: Float, t: Float) {
         val s = viewScale()
-        moveTo(male, width * 0.5f - 110f * s, height * 0.52f, 5f, dt)
-        moveTo(female, width * 0.5f + 110f * s, height * 0.52f, 5f, dt)
+        moveTo(male, worldW * 0.5f - 110f * s, worldH * 0.52f, 5f, dt)
+        moveTo(female, worldW * 0.5f + 110f * s, worldH * 0.52f, 5f, dt)
         if (t > 0.7f) {
             val sway = sin((t - 0.7f) * 11f)
             male.armRX = 33f + sway * 3f
@@ -496,9 +523,9 @@ class DesktopPetView @JvmOverloads constructor(
 
     private fun updateHighFive(dt: Float, t: Float) {
         val s = viewScale()
-        val cx = width * 0.5f
-        moveTo(male, cx - 150f * s, height * 0.52f, 6f, dt)
-        moveTo(female, cx + 150f * s, height * 0.52f, 6f, dt)
+        val cx = worldW * 0.5f
+        moveTo(male, cx - 150f * s, worldH * 0.52f, 6f, dt)
+        moveTo(female, cx + 150f * s, worldH * 0.52f, 6f, dt)
 
         val wind = (t / 0.55f).coerceIn(0f, 1f)
         val strike = ((t - 0.55f) / 0.35f).coerceIn(0f, 1f)
@@ -511,17 +538,17 @@ class DesktopPetView @JvmOverloads constructor(
 
         if (strike > 0.82f && stage == 0) {
             stage = 1
-            spawnSparks(cx, height * 0.52f - 8f, 40, Color.WHITE)
-            spawnRing(cx, height * 0.52f - 6f, 0xFF7EF7FF.toInt())
-            spawnRing(cx, height * 0.52f - 6f, Color.WHITE)
+            spawnSparks(cx, worldH * 0.52f - 8f, 40, Color.WHITE)
+            spawnRing(cx, worldH * 0.52f - 6f, 0xFF7EF7FF.toInt())
+            spawnRing(cx, worldH * 0.52f - 6f, Color.WHITE)
         }
         if (stage >= 1) {
             male.eye = FACE_HAPPY; female.eye = FACE_HAPPY
             male.mouth = MOUTH_SMILE; female.mouth = MOUTH_SMILE
         }
         if (stage >= 1 && t > 1.6f) {
-            moveTo(male, cx - 130f * s, height * 0.52f, 2f, dt)
-            moveTo(female, cx + 130f * s, height * 0.52f, 2f, dt)
+            moveTo(male, cx - 130f * s, worldH * 0.52f, 2f, dt)
+            moveTo(female, cx + 130f * s, worldH * 0.52f, 2f, dt)
             male.armRX = 44f; male.armRY = 4f
             female.armLX = -44f; female.armLY = 4f
         }
@@ -529,8 +556,8 @@ class DesktopPetView @JvmOverloads constructor(
 
     private fun updateDance(dt: Float, t: Float) {
         val r0 = 172f * viewScale()
-        val cx = width * 0.5f
-        val cy = height * 0.5f
+        val cx = worldW * 0.5f
+        val cy = worldH * 0.5f
         val ang = t * 1.75f
         val bounce = sin(t * 3.6f)
         moveTo(male, cx + cos(ang) * r0, cy + sin(ang) * r0 * 0.42f - bounce * 10f, 9f, dt)
@@ -550,9 +577,9 @@ class DesktopPetView @JvmOverloads constructor(
     }
 
     private fun updateChase(dt: Float, t: Float) {
-        val cx = width * 0.5f
-        val fx = cx + sin(t * 0.95f) * width * 0.29f
-        val fy = height * 0.48f + sin(t * 1.9f) * height * 0.17f
+        val cx = worldW * 0.5f
+        val fx = cx + sin(t * 0.95f) * worldW * 0.29f
+        val fy = worldH * 0.48f + sin(t * 1.9f) * worldH * 0.17f
         val prevX = female.x
         moveTo(female, fx, fy, 5.5f, dt)
         val gap = 190f * viewScale()
@@ -621,8 +648,8 @@ class DesktopPetView @JvmOverloads constructor(
 
     private fun updateHeart(dt: Float, t: Float) {
         val s = viewScale()
-        moveTo(male, width * 0.5f - 180f * s, height * 0.52f, 5f, dt)
-        moveTo(female, width * 0.5f + 180f * s, height * 0.52f, 5f, dt)
+        moveTo(male, worldW * 0.5f - 180f * s, worldH * 0.52f, 5f, dt)
+        moveTo(female, worldW * 0.5f + 180f * s, worldH * 0.52f, 5f, dt)
         if (t > 0.8f) {
             male.eye = FACE_HAPPY; female.eye = FACE_HAPPY
             female.mouth = MOUTH_SMILE
@@ -634,15 +661,15 @@ class DesktopPetView @JvmOverloads constructor(
             if (random.nextFloat() < dt * 12f) {
                 val fromMale = random.nextBoolean()
                 spawnHeart(if (fromMale) male.x + 40f else female.x - 40f,
-                    height * 0.44f + randomRange(-30f, 30f), randomRange(5f, 9f), 0xFFFF8FBF.toInt())
+                    worldH * 0.44f + randomRange(-30f, 30f), randomRange(5f, 9f), 0xFFFF8FBF.toInt())
             }
         }
     }
 
     private fun updateLean(dt: Float, t: Float) {
         val s = viewScale()
-        moveTo(male, width * 0.5f - 100f * s, height * 0.545f, 4.5f, dt)
-        moveTo(female, width * 0.5f + 105f * s, height * 0.555f, 4.5f, dt)
+        moveTo(male, worldW * 0.5f - 100f * s, worldH * 0.545f, 4.5f, dt)
+        moveTo(female, worldW * 0.5f + 105f * s, worldH * 0.555f, 4.5f, dt)
         if (t > 1f) {
             val k = ((t - 1f) / 0.9f).coerceIn(0f, 1f)
             male.tilt = lerp(0f, 6f, k)
@@ -655,7 +682,7 @@ class DesktopPetView @JvmOverloads constructor(
             male.armRX = 30f; male.armRY = 4f
             female.armLX = -26f; female.armLY = 8f
             if (random.nextFloat() < dt * 2.6f) {
-                spawnHeart(width * 0.5f + randomRange(-40f, 60f), height * 0.44f,
+                spawnHeart(worldW * 0.5f + randomRange(-40f, 60f), worldH * 0.44f,
                     randomRange(8f, 14f), 0xFFFF6FA8.toInt())
             }
         }
@@ -663,8 +690,8 @@ class DesktopPetView @JvmOverloads constructor(
 
     private fun updateQuarrel(dt: Float, t: Float) {
         val s = viewScale()
-        moveTo(male, width * 0.5f - 210f * s, height * 0.52f, 6f, dt)
-        moveTo(female, width * 0.5f + 210f * s, height * 0.52f, 6f, dt)
+        moveTo(male, worldW * 0.5f - 210f * s, worldH * 0.52f, 6f, dt)
+        moveTo(female, worldW * 0.5f + 210f * s, worldH * 0.52f, 6f, dt)
         val turnAway = t > 2.6f && t < 3.4f
         if (turnAway) {
             male.face = -1; female.face = 1
@@ -695,20 +722,20 @@ class DesktopPetView @JvmOverloads constructor(
                 say(male, "哈哈", 1.4f)
             }
             if (random.nextFloat() < dt * 3f) {
-                spawnHeart(width * 0.5f, height * 0.45f, randomRange(6f, 10f), 0xFFFF6FA8.toInt())
+                spawnHeart(worldW * 0.5f, worldH * 0.45f, randomRange(6f, 10f), 0xFFFF6FA8.toInt())
             }
         }
     }
 
     private fun updateHug(dt: Float, t: Float) {
         val s = viewScale()
-        moveTo(male, width * 0.5f - 96f * s, height * 0.545f, 5f, dt)
-        moveTo(female, width * 0.5f + 100f * s, height * 0.55f, 5f, dt)
+        moveTo(male, worldW * 0.5f - 96f * s, worldH * 0.545f, 5f, dt)
+        moveTo(female, worldW * 0.5f + 100f * s, worldH * 0.55f, 5f, dt)
         if (t > 0.8f) {
             val k = ((t - 0.8f) / 0.7f).coerceIn(0f, 1f)
             hugArms = k
-            moveTo(male, width * 0.5f - 82f * s, height * 0.545f, 3f, dt)
-            moveTo(female, width * 0.5f + 86f * s, height * 0.55f, 3f, dt)
+            moveTo(male, worldW * 0.5f - 82f * s, worldH * 0.545f, 3f, dt)
+            moveTo(female, worldW * 0.5f + 86f * s, worldH * 0.55f, 3f, dt)
             male.eye = FACE_HAPPY; female.eye = FACE_HAPPY
             male.mouth = MOUTH_SMILE; female.mouth = MOUTH_SMILE
             male.tilt = 3f; female.tilt = -3f
@@ -726,7 +753,7 @@ class DesktopPetView @JvmOverloads constructor(
                 spawnRing(cx, cy + 10f, 0xFFFF8FBF.toInt())
             }
             if (random.nextFloat() < dt * 2.2f) {
-                spawnHeart(width * 0.5f + randomRange(-50f, 50f), height * 0.44f,
+                spawnHeart(worldW * 0.5f + randomRange(-50f, 50f), worldH * 0.44f,
                     randomRange(6f, 11f), 0xFFFF6FA8.toInt())
             }
         }
@@ -734,13 +761,14 @@ class DesktopPetView @JvmOverloads constructor(
 
     // ---------------------------------------------------------------- 位移小工具
 
-    private fun viewScale(): Float = min(width, height) / 720f * 0.85f
+    private fun viewScale(): Float =
+        if (fixedScale > 0f) fixedScale else min(worldW, worldH) / 720f * 0.85f
 
     private fun moveTo(r: Robot, tx: Float, ty: Float, k: Float, dt: Float) {
         r.x = approach(r.x, tx, k, dt)
         r.y = approach(r.y, ty, k, dt)
-        r.x = r.x.coerceIn(EDGE_PAD, width - EDGE_PAD)
-        r.y = r.y.coerceIn(EDGE_PAD, height - EDGE_PAD)
+        r.x = r.x.coerceIn(EDGE_PAD, worldW - EDGE_PAD)
+        r.y = r.y.coerceIn(EDGE_PAD, worldH - EDGE_PAD)
     }
 
     private fun approach(cur: Float, target: Float, k: Float, dt: Float): Float =
@@ -1023,7 +1051,7 @@ class DesktopPetView @JvmOverloads constructor(
     private fun drawBeam(canvas: Canvas) {
         if (beam <= 0.01f) return
         val cx = (male.x + female.x) / 2f
-        val cy = height * 0.44f
+        val cy = worldH * 0.44f
         stroke.strokeWidth = 3f * beam
         stroke.color = withAlpha(MALE.neon, 200)
         canvas.drawLine(male.x + 34f, male.y + 20f, cx, cy + 20f, stroke)

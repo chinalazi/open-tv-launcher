@@ -79,72 +79,16 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- 每日壁纸画框 -->
-            <FrameLayout
-                android:id="@+id/wallpaper_frame"
+            <!-- 联网监视器：实时滚动当前在联网的进程（原每日壁纸画框的位置） -->
+            <com.openlauncher.tv.ui.home.NetMonitorView
+                android:id="@+id/net_monitor"
                 android:layout_width="match_parent"
                 android:layout_height="262dp"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_frame">
+                android:contentDescription="网络活动监视，按确定键切换视图"
+                android:focusable="true"
+                android:focusableInTouchMode="true" />
 
-                <ImageView
-                    android:id="@+id/frame_image"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:contentDescription="每日壁纸"
-                    android:scaleType="centerCrop" />
-
-                <!-- 底部渐变压暗，保证说明文字可读 -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="86dp"
-                    android:layout_gravity="bottom"
-                    android:background="@drawable/bg_frame_scrim" />
-
-                <!-- 右上角：壁纸设置（图片种类 / 来源 / 接口地址 都在里面） -->
-                <FrameLayout
-                    android:id="@+id/btn_wallpaper_settings"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:layout_gravity="top|end"
-                    android:layout_marginTop="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:background="@drawable/bg_gear_btn"
-                    android:clickable="true"
-                    android:contentDescription="壁纸设置"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true">
-
-                    <ImageView
-                        android:id="@+id/ic_wallpaper_settings"
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_gravity="center"
-                        android:duplicateParentState="true"
-                        android:src="@drawable/ic_gear"
-                        android:tint="@color/icon_on_circle" />
-                </FrameLayout>
-
-                <!-- 左下角：图片说明 -->
-                <TextView
-                    android:id="@+id/frame_caption"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|start"
-                    android:layout_marginStart="16dp"
-                    android:layout_marginEnd="16dp"
-                    android:layout_marginBottom="12dp"
-                    android:ellipsize="end"
-                    android:maxLines="1"
-                    android:shadowColor="#80000000"
-                    android:shadowDx="0"
-                    android:shadowDy="1"
-                    android:shadowRadius="6"
-                    android:text="正在准备今日壁纸…"
-                    android:textColor="#F2FFFFFF"
-                    android:textSize="12sp" />
-
-            </FrameLayout>
 
             <!-- 分类货架 -->
             <ScrollView
