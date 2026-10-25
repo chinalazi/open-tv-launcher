@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- 图标/齿轮聚焦时浮出的名称气泡 -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <corners android:radius="999dp" />
-    <solid android:color="#F20F2E26" />
-    <stroke android:width="1dp" android:color="#E612B57F" />
-</shape>

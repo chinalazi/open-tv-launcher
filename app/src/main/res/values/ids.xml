@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- 右下角固定磁贴：供焦点链路 nextFocusXxxId 引用 -->
-    <item name="btn_home_settings" type="id" />
-    <item name="btn_home_more" type="id" />
-</resources>
