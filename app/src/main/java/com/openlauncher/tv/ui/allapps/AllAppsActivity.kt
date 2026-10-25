@@ -39,8 +39,8 @@ class AllAppsActivity : AppCompatActivity() {
         binding = ActivityAllAppsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val columns = (resources.configuration.screenWidthDp / 132).coerceIn(4, 8)
-        binding.gridAllApps.layoutManager = GridLayoutManager(this, columns)
+        // 应用少的时候（这台电视就 7 个）别摆 8 列留空，按数量算列数让一行铺满
+        binding.gridAllApps.layoutManager = GridLayoutManager(this, MAX_COLUMNS)
 
         lifecycleScope.launch {
             val all = launcherApp.database.launcherDao().getAllVisibleAppsFlow().first()
@@ -49,7 +49,13 @@ class AllAppsActivity : AppCompatActivity() {
                 compareBy({ isSystem(it.packageName) }, { it.label.lowercase() })
             )
             binding.tvAllAppsSub.text = "共 ${sorted.size} 个应用"
-            binding.gridAllApps.adapter = TileAdapter(sorted.map { TileItem.App(it) }, callbacks)
+            val rows = Math.ceil(sorted.size / MAX_COLUMNS.toDouble()).toInt().coerceAtLeast(1)
+            val columns = Math.ceil(sorted.size / rows.toDouble()).toInt().coerceIn(1, MAX_COLUMNS)
+            (binding.gridAllApps.layoutManager as? GridLayoutManager)?.spanCount = columns
+            binding.gridAllApps.adapter = TileAdapter(
+                sorted.map { TileItem.App(it) }, callbacks, columns,
+                if (columns <= 6) 60 else TILE_SIZE_DP
+            )
             binding.gridAllApps.postDelayed({ focusFirst() }, 120L)
         }
     }
@@ -63,6 +69,8 @@ class AllAppsActivity : AppCompatActivity() {
     private companion object {
         /** 小米电视「设置」的包名：它的主页入口慢到不可用，见 [launchApp]。 */
         const val MI_SETTINGS = "com.xiaomi.mitv.settings"
+        const val TILE_SIZE_DP = 52
+        const val MAX_COLUMNS = 8
     }
 
     private fun isSystem(packageName: String): Boolean = systemCache.getOrPut(packageName) {

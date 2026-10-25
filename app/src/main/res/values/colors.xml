@@ -1,16 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 明亮绿主题（方案 1 薄荷晨光）：背景提亮偏灰绿，卡片半透明白，强调色 #12B57F -->
-    <color name="bg_root">#0B1418</color>
-    <color name="surface">#1C1C1E</color>
-    <color name="surface_strong">#2C2C2E</color>
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#8E8E93</color>
-    <color name="accent">#12B57F</color>
+    <!-- 极简深色：纯色底，不用渐变、不用背景图 -->
+    <color name="bg_root">#0A0E0C</color>
+    <color name="surface">#141A17</color>
+    <color name="surface_strong">#1E2723</color>
+    <color name="text_primary">#E9F2ED</color>
+    <color name="text_secondary">#8CA096</color>
+    <color name="accent">#35D08B</color>
+
+    <!-- 极简版层级：全靠半透明白叠出来，不再有实心卡片 -->
+    <color name="min_tile">#12FFFFFF</color>
+    <color name="min_tile_focus">#1FFFFFFF</color>
+    <color name="min_row">#0AFFFFFF</color>
+    <color name="min_row_focus">#1AFFFFFF</color>
+    <color name="min_line">#1AFFFFFF</color>
+    <color name="min_icon">#8CA096</color>
+    <color name="min_icon_focus">#E9F2ED</color>
 
     <!-- 绿色系 -->
-    <color name="green">#12B57F</color>
-    <color name="green_deep">#0FA974</color>
+    <color name="green">#35D08B</color>
+    <color name="green_deep">#12B57F</color>
     <color name="green_ink">#0F2E26</color>
     <color name="green_ink_soft">#0F5A44</color>
     <color name="green_mist">#EAF7F1</color>

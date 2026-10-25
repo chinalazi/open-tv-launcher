@@ -17,8 +17,11 @@ import androidx.annotation.DrawableRes
 import com.openlauncher.tv.data.local.AppItemEntity
 
 /**
- * Apple TV 风格的磁贴：圆角方块（底色取自应用主色）+ 图标 + 下方应用名。
- * 聚焦时放大、抬升、描白边。整块尺寸按屏宽自适应，保证 960dp / 1280dp 的电视观感一致。
+ * 极简磁贴：一块很淡的半透明圆角方块 + 真实应用图标 + 一行名字。
+ *
+ * 和旧版的区别是「不抢戏」——不再按应用主色铺渐变底，颜色只保留在图标本身，
+ * 聚焦时用一个绿色描边环告诉用户焦点在哪。首页与「全部应用」共用这套外观，
+ * 只是通过 [sizeDp] 给出不同尺寸。
  */
 class AppTileView @JvmOverloads constructor(
     context: Context,
@@ -41,12 +44,11 @@ class AppTileView @JvmOverloads constructor(
     private val tileSize: Int = when {
         sizeDp > 0 -> sizeDp
         resources.configuration.screenWidthDp >= 1280 -> 104
-        // 960dp（1080p 电视）：一行要放得下「第三方应用 + 设置 + 更多」
-        resources.configuration.screenWidthDp >= 960 -> 80
+        resources.configuration.screenWidthDp >= 960 -> 84
         else -> 74
     }
 
-    private val cornerRadius: Int = (tileSize * 0.23f).toInt()
+    private val cornerRadius: Int = (tileSize * 0.28f).toInt()
 
     init {
         orientation = VERTICAL
@@ -56,11 +58,11 @@ class AppTileView @JvmOverloads constructor(
         descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         clipChildren = false
         clipToPadding = false
-        setPadding(dp(6), dp(6), dp(6), dp(6))
+        setPadding(dp(4), dp(4), dp(4), dp(4))
 
         iconView.scaleType = ImageView.ScaleType.FIT_CENTER
         val tilePx = dp(tileSize)
-        val iconPx = dp((tileSize * 0.54f).toInt())
+        val iconPx = dp((tileSize * 0.56f).toInt())
         iconBox.addView(
             iconView,
             FrameLayout.LayoutParams(iconPx, iconPx, Gravity.CENTER)
@@ -72,15 +74,17 @@ class AppTileView @JvmOverloads constructor(
             maxLines = 1
             ellipsize = TextUtils.TruncateAt.END
             setTextColor(LABEL_NORMAL)
-            setShadowLayer(7f, 0f, 1f, 0x73000F0C)
-            textSize = 14f
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            textSize = (tileSize * 0.16f).coerceAtLeast(8f)
+            typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+            letterSpacing = 0.02f
         }
         addView(
             labelView,
-            LinearLayout.LayoutParams(tilePx, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                topMargin = dp(9)
-                bottomMargin = dp(4)
+            LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = dp((tileSize * 0.11f).toInt())
             }
         )
     }
@@ -88,35 +92,32 @@ class AppTileView @JvmOverloads constructor(
     fun bindApp(item: AppItemEntity) {
         labelView.text = item.label
         iconView.setImageDrawable(AppIconCache.get(context, item.packageName))
+        iconView.clearColorFilter()
         contentDescription = item.label
-        applyLook(AppPalette.colorOf(context, item.packageName))
+        buildBackground()
     }
 
-    fun bindAction(@DrawableRes iconRes: Int, title: String, color: Int, iconTint: Int? = null) {
+    fun bindAction(@DrawableRes iconRes: Int, title: String, iconTint: Int? = null) {
         labelView.text = title
         iconView.setImageResource(iconRes)
         if (iconTint == null) iconView.clearColorFilter() else iconView.setColorFilter(iconTint)
         contentDescription = title
-        applyLook(color)
+        buildBackground()
     }
 
-    private fun applyLook(color: Int) {
+    private fun buildBackground() {
         val radius = dp(cornerRadius).toFloat()
-        normalBg = GradientDrawable(
-            GradientDrawable.Orientation.TL_BR,
-            intArrayOf(shade(color, 1.02f), shade(color, 0.50f))
-        ).apply {
+        normalBg = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
             cornerRadius = radius
-            setStroke(dp(1), 0x2EFFFFFF)
+            setColor(0x12FFFFFF)
         }
-        focusBg = GradientDrawable(
-            GradientDrawable.Orientation.TL_BR,
-            intArrayOf(shade(color, 1.30f), shade(color, 0.70f))
-        ).apply {
+        focusBg = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
             cornerRadius = radius
-            setStroke(dp(2), 0xF2FFFFFF.toInt())
+            setColor(0x1FFFFFFF)
+            setStroke(dp(3), ACCENT)
         }
-        background = null
         iconBox.background = if (isFocused) focusBg else normalBg
     }
 
@@ -130,10 +131,9 @@ class AppTileView @JvmOverloads constructor(
 
         animate().cancel()
         animate()
-            .scaleX(if (gainFocus) 1.08f else 1f)
-            .scaleY(if (gainFocus) 1.08f else 1f)
-            .translationZ(if (gainFocus) dp(14).toFloat() else 0f)
-            .setDuration(if (gainFocus) 180L else 130L)
+            .scaleX(if (gainFocus) 1.05f else 1f)
+            .scaleY(if (gainFocus) 1.05f else 1f)
+            .setDuration(if (gainFocus) 170L else 120L)
             .start()
 
         focusChanged?.invoke(gainFocus)
@@ -141,15 +141,9 @@ class AppTileView @JvmOverloads constructor(
 
     fun dp(value: Int): Int = (value * resources.displayMetrics.density + 0.5f).toInt()
 
-    private fun shade(color: Int, factor: Float): Int {
-        val hsv = FloatArray(3)
-        Color.colorToHSV(color, hsv)
-        hsv[2] = (hsv[2] * factor).coerceIn(0.05f, 1f)
-        return Color.HSVToColor(hsv)
-    }
-
     companion object {
-        private val LABEL_NORMAL = 0xCCFFFFFF.toInt()
-        private val LABEL_FOCUSED = Color.WHITE
+        private val ACCENT = 0xFF35D08B.toInt()
+        private val LABEL_NORMAL = 0xFF8CA096.toInt()
+        private val LABEL_FOCUSED = 0xFFE9F2ED.toInt()
     }
 }

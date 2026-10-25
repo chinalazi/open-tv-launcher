@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 设置里的一行：图标 + 名称 + 当前值 + 箭头（density 2.0，尺寸 = 设计值 / 2） -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/row_body"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_min_row"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="15dp"
+        android:paddingEnd="13dp">
+
+        <ImageView
+            android:id="@+id/row_icon"
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:contentDescription="@null"
+            android:duplicateParentState="true"
+            android:tint="@color/icon_min" />
+
+        <TextView
+            android:id="@+id/row_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="11dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/text_primary"
+            android:textSize="13.5dp" />
+
+        <TextView
+            android:id="@+id/row_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:maxLines="1"
+            android:textColor="@color/text_secondary"
+            android:textSize="11dp" />
+
+        <ImageView
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:contentDescription="@null"
+            android:duplicateParentState="true"
+            android:src="@drawable/ic_arrow"
+            android:tint="#5E7168" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginStart="15dp"
+        android:background="@color/min_line" />
+
+</LinearLayout>

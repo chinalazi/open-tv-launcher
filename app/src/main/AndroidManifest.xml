@@ -16,6 +16,8 @@
     <!-- 一键清理：回收后台进程 -->
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 设置页显示蓝牙开关状态（普通权限，安装即授予） -->
+    <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
