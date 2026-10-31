@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 时间页的三个操作按钮：默认半透明白底，聚焦时绿框，比纯文字好认 -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="@color/min_row_focus" />
+            <corners android:radius="10dp" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/accent" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="@color/min_tile" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+</selector>

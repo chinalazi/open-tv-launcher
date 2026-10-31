@@ -4,8 +4,82 @@
 
 - Kotlin 1.9.22 + AGP 8.2.2 + Gradle 8.2，compileSdk/targetSdk 34，minSdk 23（Android 6.0，兼容小米电视 4A）
 - AndroidX AppCompat + RecyclerView（桌面货架自绘）、Room + KSP（分类/应用数据）
-- 网络：只用系统 `HttpURLConnection` 手写请求，不引第三方网络库（每日壁纸已下线，现在只对时用）
+- 网络：只对时用 —— 阿里 NTP（`DatagramSocket` 手写 SNTP）+ `HttpURLConnection` 兜底，不引第三方网络库
 - release 沿用仓库内固定签名（`keystore/opentv.p12`），方便 CI 直出可安装包
+
+## 版本 1.8.1 / 1.8.2 时间只读系统 + 阿里校时
+
+小米电视的系统时钟已经修好（`auto_time` 生效），launcher 再自己联网纠正就成了负担 ——
+开机抓一次 HTTP `Date` 头、服务器只到秒、往返延迟、时区换算，每一样都会把本来正确的时间校歪。
+
+### 一、1.8.1：拆掉自动校时
+
+- 删除 `TimeSync`（原本 `onResume` 里 `loadCached/sync` + `lifecycleScope` 联网），换成 `AppTime`：
+  **默认就是 `System.currentTimeMillis()`**，只在用户手动校过之后才带上偏移。
+- 新开 prefs 文件 `app_time`：老的 `time_sync` 里存着当年算出来的 37 分钟，绝不能再读。
+- 设置页新增「日期与时间」行（右侧显示 `HH:mm`，有偏移时后缀"（阿里校时）"）。
+  系统没有可用的日期时间页（`DATE_SETTINGS` 解析不到、`GeneralActivity` 拉起不绘制），只能自建。
+
+### 二、1.8.2：表单换成「同步阿里时间」
+
+1.8.1 的自建页第一版是「年 / 月 / 日 / 时 / 分」五个字段，左右键改值、上下换行。
+能用，但遥控器挪五个字段太难受，而且改的只是桌面显示，系统时钟照样改不动 —— 纯折腾，删掉。
+
+现在整页只有两个按钮：
+
+```
+14:23:17  10月31日 星期六        ← 桌面时钟（带偏移）
+─────────────────────────
+系统时间                14:23:17
+阿里校时   14:23:11 · ntp.aliyun.com · 相差 305 毫秒
+[ 同步阿里时间 ]  [ 跟随系统 ]
+```
+
+「同步阿里时间」做的事：
+
+| 顺序 | 时间源 | 说明 |
+| --- | --- | --- |
+| 1 | `ntp.aliyun.com` / `ntp1` / `ntp2`（UDP 123） | 手写 48 字节 SNTP 包，取 transmit timestamp + 半个 RTT 补偿 |
+| 2 | `api.m.taobao.com` 的 `mtop.common.getTimestamp` | 部分路由器封 UDP 123 时的兜底，正则抓 `"t":"17…"` |
+
+拿到时间后分三种结果，全程如实告知：
+
+1. `|差值| < 1 秒` → 清偏移，提示「阿里时间与系统时钟一致（相差 N 毫秒）」，不动系统；
+2. `AlarmManager.setTime()` 成功 → 真写进系统时钟（本机不可能，见下）；
+3. 写不进去 → 把差值存成偏移，只让桌面时钟对上，并明说「系统时钟本身改不动」。
+
+### 三、为什么普通应用改不了这台电视的系统时间（实测证据）
+
+| 手段 | 结果 |
+| --- | --- |
+| `AlarmManager.setTime()` | 无 `SET_TIME`（signature\|privileged）→ 返回 false / SecurityException |
+| `adb shell echo > /data/system/record.time` | `Permission denied`（SELinux Enforcing，见下） |
+| `adb shell date -s` | 无权限 |
+| `adb shell su` | 没有 su |
+| 应用内 `reboot` | 需要 `REBOOT` 权限 |
+
+`/data/system/record.time` 的 DAC 权限确实是 `-rw-rw-rw-`，`/data/system` 也是 `drwxrwxr-x`
+（shell 能 `cd` 进去、能 `cat` 出来，内容形如 `1793427339323`），但**写**仍然被 SELinux 拦掉：
+
+```
+$ adb shell "echo $(cat /data/system/record.time) > /data/system/record.time"
+/system/bin/sh: can't create /data/system/record.time: Permission denied
+$ adb shell getenforce
+Enforcing
+```
+
+### 四、手动校时方法（备查，需要 root）
+
+如果以后网络环境屏蔽了小米域名导致自动校时失效，且手上有 root：
+
+```bash
+# 写入当前 UTC 毫秒时间戳，重启后 NetworkTimeUpdateService 读取该文件并设置系统时间
+adb shell "su -c 'date +%s%3N > /data/system/record.time'"
+adb shell su -c reboot
+```
+
+无 root 时用电脑对电视（前提是 `adb root` 可用）。**没有 root 就只能改桌面显示** ——
+这也是应用内不做这件事的原因：写不进去，且写进去也重启不了。
 
 ## 版本 1.8.0 极简版：只留程序入口和设置
 

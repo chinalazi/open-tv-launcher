@@ -14,6 +14,53 @@
         <item name="colorAccent">@color/accent</item>
     </style>
 
+    <!-- 日期与时间：只读信息行（系统时间 / 阿里校时），不参与焦点 -->
+    <style name="TimeInfoRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">34dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">15dp</item>
+        <item name="android:paddingEnd">15dp</item>
+        <item name="android:focusable">false</item>
+        <item name="android:focusableInTouchMode">false</item>
+    </style>
+
+    <style name="TimeInfoLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">11.5dp</item>
+    </style>
+
+    <style name="TimeInfoValue">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">end</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14dp</item>
+    </style>
+
+    <!-- 时间页底部的两个操作：形状跟设置行一致，聚焦时绿框 -->
+    <style name="TimeAction">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_marginEnd">10dp</item>
+        <item name="android:paddingStart">26dp</item>
+        <item name="android:paddingEnd">26dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:background">@drawable/bg_time_action</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">13dp</item>
+    </style>
+
     <!-- 设置页的胶囊按钮：默认深灰，聚焦时反白（电视上焦点最直观） -->
     <style name="SettingsButton" parent="Widget.AppCompat.Button">
         <item name="android:layout_width">wrap_content</item>

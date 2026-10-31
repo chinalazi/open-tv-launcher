@@ -10,7 +10,6 @@
         android:name="android.hardware.touchscreen"
         android:required="false" />
 
-    <!-- 仅用于拉取 Bing 每日壁纸；除此之外不发起任何网络请求 -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- 一键清理：回收后台进程 -->
@@ -56,6 +55,12 @@
 
         <activity
             android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.OpenTVLauncher.Settings" />
+
+        <activity
+            android:name=".ui.settings.TimeSettingsActivity"
             android:exported="false"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.OpenTVLauncher.Settings" />

@@ -17,7 +17,11 @@ import com.openlauncher.tv.R
 import com.openlauncher.tv.app.LauncherApplication
 import com.openlauncher.tv.databinding.ActivitySettingsBinding
 import com.openlauncher.tv.databinding.ViewSettingsRowBinding
+import com.openlauncher.tv.ui.home.AppTime
 import kotlinx.coroutines.flow.first
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 /**
@@ -32,6 +36,11 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
     private var firstRow: View? = null
 
+    /** 「日期与时间」行右侧的时间，onResume 时刷新。 */
+    private var timeRowValue: TextView? = null
+
+    private val timeFormat = SimpleDateFormat("HH:mm", Locale.CHINA)
+
     private val launcherApp: LauncherApplication get() = application as LauncherApplication
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,10 +52,24 @@ class SettingsActivity : AppCompatActivity() {
         binding.tvVersion.text =
             "OpenTV Launcher ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) · MIT"
 
+        // 先把手动偏移读进来，行右侧的时间才是桌面真正显示的那个
+        AppTime.load(this)
         buildRows()
 
         // 遥控器过来就能直接按方向键
         firstRow?.post { firstRow?.requestFocus() }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // 从「日期与时间」页回来时把右侧时间刷新成最新值
+        AppTime.load(this)
+        timeRowValue?.text = timeText()
+    }
+
+    private fun timeText(): String {
+        val base = timeFormat.format(Date(AppTime.now()))
+        return if (AppTime.offset() == 0L) base else "$base（阿里校时）"
     }
 
     private fun buildRows() {
@@ -58,6 +81,10 @@ class SettingsActivity : AppCompatActivity() {
         }
         addRow(R.drawable.ic_display, "画面与声音", "") {
             openSystem(SystemSettingsLauncher.Target.DISPLAY)
+        }
+        // 系统没有「日期与时间」页面（DATE_SETTINGS 解析不到、通用设置页会卡住），只能用自建页
+        timeRowValue = addRow(R.drawable.ic_clock, "日期与时间", timeText()) {
+            startActivity(Intent(this, TimeSettingsActivity::class.java))
         }
         val appsValue = addRow(R.drawable.ic_apps, "应用管理", "…") {
             openSystem(SystemSettingsLauncher.Target.APPS)

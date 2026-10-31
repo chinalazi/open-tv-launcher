@@ -64,18 +64,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        TimeSync.loadCached(this)
+        // 时间一律以系统时钟为准，不再联网校正；只有用户在设置里手动设过偏移才带上
+        AppTime.load(this)
         startTicker()
         updateClock()
         if (binding.appGrid.findFocus() == null) {
             binding.appGrid.post { focusGrid(focusedPosition) }
-        }
-        // 电视的 NTP 对时不一定成功（这台机器慢 37 分钟），启动时自己校一次
-        lifecycleScope.launch {
-            if (TimeSync.needsSync(this@MainActivity)) {
-                TimeSync.sync(this@MainActivity)
-                updateClock()
-            }
         }
     }
 
@@ -306,9 +300,9 @@ class MainActivity : AppCompatActivity() {
         ticker = null
     }
 
-    /** 这台电视的系统时钟会慢（NTP 没生效），所以时间统一走 [TimeSync.now]。 */
+    /** 读系统时钟（带用户手动设的偏移，默认 0），见 [AppTime]。 */
     private fun updateClock() {
-        val now = Date(TimeSync.now())
+        val now = Date(AppTime.now())
         val time = timeFormat.format(now)
         if (binding.clockTime.text != time) binding.clockTime.text = time
         val date = "${dateFormat.format(now)} ${weekFormat.format(now)}"
